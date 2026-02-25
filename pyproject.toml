@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "curses-fzf"
+dynamic = ["version"]
+description = "A pure python implementation of fzf (fuzzyfinder) with some additional features using curses lib."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICEN[CS]E.*"]
+authors = [{name = "Heiko Finzel", email = "heikofinzel@googlemail.com"}]
+maintainers = [{name = "Heiko Finzel", email = "heikofinzel@googlemail.com"}]
+keywords = ["python", "fzf", "fuzzyfinder", "fuzzy", "finder", "curses", "cli", "filter", "search"]
+# https://pypi.org/classifiers/
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: Console :: Curses",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: User Interfaces",
+    "Topic :: Text Processing :: Filters",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/Heiko-san/curses_fzf"
+Documentation = "https://github.com/Heiko-san/curses_fzf/blob/main/README.md"
+Repository = "https://github.com/Heiko-san/curses_fzf.git"
+Issues = "https://github.com/Heiko-san/curses_fzf/issues"
+Changelog = "https://github.com/Heiko-san/curses_fzf/blob/main/CHANGELOG.md"
+
+# [project.scripts]
+# pyfzf = "curses_fzf.cli:main"
+
+[tool.hatch.version]
+path = "src/curses_fzf/__about__.py"
