@@ -19,7 +19,7 @@ def main() -> None:
         # display dict items by "name" key
         display=lambda item: item.get("name"),
         # preselect every item with less than 400 calories
-        preselect=lambda item: item.get("calories", 0) < 400,
+        preselect=lambda item, result: item.get("calories", 0) < 400,
         # display preview as yaml representation of our items
         preview=yaml_preview,
     )

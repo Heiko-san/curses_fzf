@@ -166,7 +166,7 @@ def scoring_full_words(query: str, candidate: str) -> ScoringResult:
     if all(result.matches[i][0] < result.matches[i+1][0] for i in range(len(result.matches) - 1)):
         result.score = int(result.score * 1.2)
 
-    # normalize the score by the number of matches / query words
+    # normalize the score by the number of matches (= number of query words)
     result.score = int(result.score / len(result.matches))
     return result
 

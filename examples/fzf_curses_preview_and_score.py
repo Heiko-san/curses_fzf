@@ -11,7 +11,7 @@ def curses_preview(preview_window: curses.window, item: Any, result: ScoringResu
     height, width = preview_window.getmaxyx()
     # If you plan to resize your terminal or your strings can get longer than the terminal's width,
     # you should limit your output to avoid crashes.
-    # If you use the string return preview, fuzzyfinder takes care of this.
+    # If you use the string-return preview, fuzzyfinder takes care of this.
     if height > 3:
         preview_window.addstr(2, 4, "score:", curses.color_pair(Color.WHITE))
         preview_window.addstr(2, 11, str(result.score), curses.color_pair(Color.WHITE_ON_RED))
@@ -35,11 +35,11 @@ def main() -> None:
     result = fuzzyfinder(
         # fuzzyfind data allowing selection of multiple items
         DATA, multi=False,
-        # display preview are containing yaml representation of our items
+        # display preview by using the curses window parameter
         preview=curses_preview,
         # grant preview window more width
         preview_window_percentage=50,
-        # this query preseed show how the order bonus can make a difference (see first 2 itemss)
+        # this query preseed shows how the order bonus can make a difference (see first 2 matches)
         query="wo in",
     )
 
