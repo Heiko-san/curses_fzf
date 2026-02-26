@@ -40,7 +40,7 @@ It will contain `0..1` items in single-selection mode and `0..n` in multi-select
 ```py
 from curses_fzf import fuzzyfinder
 
-choices = fuzzyfinder(data, query="spam eggs")
+choices = fuzzyfinder(data, query="the in")
 ```
 
 By default `fuzzyfinder` will start with an empty `query`.
