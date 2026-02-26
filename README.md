@@ -18,8 +18,8 @@ that could be unset while selecting new ones)?
 To all of the above questions this module is the answer.
 
 <p float="left">
-<img src="https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple.png" width="45%"/>
-<img src="https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/multi_with_preview.png" width="45%"/>
+<img src="https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple.png" width="49%"/>
+<img src="https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/multi_with_preview.png" width="49%"/>
 </p>
 
 # Features
