@@ -40,7 +40,7 @@ It will contain `0..1` items in single-selection mode and `0..n` in multi-select
 ```py
 from curses_fzf import fuzzyfinder
 
-choices = fuzzyfinder(data, query="spam eggs")
+choices = fuzzyfinder(data, query="the in")
 ```
 
 By default `fuzzyfinder` will start with an empty `query`.
@@ -51,6 +51,8 @@ sorted by match score (see `score` function).
 
 The `query` can also be pre-seeded with a given string.
 The user is still able to fully modify the query, including completely clearing it.
+
+![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple.png)
 
 ## Display Function
 
@@ -96,6 +98,8 @@ This function is expected to return `True` if the item should be selected.
 
 The default implementation always returns `False`.
 
+![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/multi_with_preview.png)
+
 ## Preview Function
 
 ```py
@@ -136,6 +140,8 @@ width of the preview window.
 The default value is `40` percent of the terminal window.
 Don't worry that the preview window might hide portions of your (long) items,
 you can toggle the preview window any time using `Ctrl + P`.
+
+![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple_with_preview.png)
 
 ## Scoring Function
 
@@ -206,3 +212,5 @@ skipped by the keys `PAGE_UP` and `PAGE_DOWN`.
 ## Help
 
 Press `F1` to display a help screen with a list of keyboard actions.
+
+![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/help.png)
