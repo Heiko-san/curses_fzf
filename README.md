@@ -17,6 +17,10 @@ that could be unset while selecting new ones)?
 
 To all of the above questions this module is the answer.
 
+![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple.png)
+![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/multi_with_preview.png)
+![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/help.png)
+
 # Features
 
 ## Multi Select Mode
