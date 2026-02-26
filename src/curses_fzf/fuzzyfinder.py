@@ -2,6 +2,7 @@ import curses
 import curses.textpad
 from typing import Any, List, Tuple, Callable
 from .scoring import ScoringResult, scoring_full_words
+from .errors import CursesFzfAssertion
 
 class Color:
     """
@@ -31,7 +32,7 @@ def fuzzyfinder(
         multi: bool = False,
         query: str = "",
         display: Callable[[Any], str] = lambda item: str(item),
-        preselect: Callable[[Any], bool] = lambda item: False,
+        preselect: Callable[[Any, ScoringResult], bool] = lambda item, result: False,
         preview: Callable[[curses.window, Any, ScoringResult], str] | None = None,
         score: Callable[[str, str], ScoringResult] = scoring_full_words,
         page_size: int = 10,
@@ -82,7 +83,7 @@ def _fzf(
         multi: bool,
         query: str,
         display: Callable[[Any], str],
-        preselect: Callable[[Any], bool],
+        preselect: Callable[[Any, ScoringResult], bool],
         preview: Callable[[curses.window, Any, ScoringResult], str] | None,
         score: Callable[[str, str], ScoringResult],
         page_size: int,
@@ -114,7 +115,7 @@ def _fzf(
         elif f_len == 1:
             return [filtered[0][0]]
     # use list to store selected items (instead of set) since e.g. dicts aren't hashable
-    selected = [item for item in items if multi and preselect(item)]
+    selected = [item_tuple[0] for item_tuple in filtered if multi and preselect(*item_tuple)]
 
     while True:
         # calculate score from query
@@ -144,6 +145,8 @@ def _fzf(
             row = i - viewport_start + 3 # header, frame line, empty line
             item, score_result = filtered[i]
             display_item = display(item)
+            if len(display_item.splitlines()) > 1:
+                raise CursesFzfAssertion("display function must return single-line strings")
             marker = "   "
             base_color = Color.WHITE
             if i == cursor and item in selected:
