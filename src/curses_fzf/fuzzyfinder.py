@@ -2,6 +2,7 @@ import curses
 import curses.textpad
 from typing import Any, List, Tuple, Callable
 from .scoring import ScoringResult, scoring_full_words
+from .errors import CursesFzfAssertion
 
 class Color:
     """
@@ -144,6 +145,8 @@ def _fzf(
             row = i - viewport_start + 3 # header, frame line, empty line
             item, score_result = filtered[i]
             display_item = display(item)
+            if len(display_item.splitlines()) > 1:
+                raise CursesFzfAssertion("display function must return single-line strings")
             marker = "   "
             base_color = Color.WHITE
             if i == cursor and item in selected:
