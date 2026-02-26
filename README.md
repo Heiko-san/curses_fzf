@@ -98,6 +98,8 @@ This function is expected to return `True` if the item should be selected.
 
 The default implementation always returns `False`.
 
+![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/multi_with_preview.png)
+
 ## Preview Function
 
 ```py
@@ -139,7 +141,7 @@ The default value is `40` percent of the terminal window.
 Don't worry that the preview window might hide portions of your (long) items,
 you can toggle the preview window any time using `Ctrl + P`.
 
-![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/multi_with_preview.png)
+![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple_with_preview.png)
 
 ## Scoring Function
 
