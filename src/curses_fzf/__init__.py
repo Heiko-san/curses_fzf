@@ -2,7 +2,7 @@ from .__about__ import __version__
 from .colors import Color, ColorTheme
 from .fuzzyfinder import fuzzyfinder
 from .scoring import ScoringResult, scoring_full_words
-from .errors import CursesFzfException, CursesFzfAssertion
+from .errors import CursesFzfException, CursesFzfAssertion, CursesFzfAborted
 
 __all__ = [
     "Color",
@@ -12,4 +12,5 @@ __all__ = [
     "scoring_full_words",
     "CursesFzfException",
     "CursesFzfAssertion",
+    "CursesFzfAborted",
 ]

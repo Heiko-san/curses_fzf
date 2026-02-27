@@ -226,3 +226,16 @@ skipped by the keys `PAGE_UP` and `PAGE_DOWN`.
 Press `F1` to display a help screen with a list of keyboard actions.
 
 ![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/help.png)
+
+## Exceptions
+
+`CursesFzfException` is the base exception type that can catch any `curses_fzf` exceptions.
+
+If the user aborts the selection using `ESC` or `Ctrl + C`, a `CursesFzfAborted` is raised.
+In single selection mode the returned list will always contain an item,
+since otherwise this exception would have been raised.
+In multi selection mode the returned list can be empty,
+if the user accepts an empty selection with `Enter`.
+
+`CursesFzfAssertion` will be raised if some contracts are broken,
+e.g. if the `display` function returns multiline text.

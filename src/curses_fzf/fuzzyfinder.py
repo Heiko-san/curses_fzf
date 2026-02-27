@@ -2,7 +2,7 @@ import curses
 import curses.textpad
 from typing import Any, List, Optional, Tuple, Callable
 from .scoring import ScoringResult, scoring_full_words
-from .errors import CursesFzfAssertion
+from .errors import CursesFzfAssertion, CursesFzfAborted
 from .colors import _init_curses, ColorTheme
 
 
@@ -27,7 +27,7 @@ def fuzzyfinder(
         return curses.wrapper(lambda stdscr: _fzf(stdscr, items, multi, query,
             display, preselect, preview, score, page_size, preview_window_percentage, autoreturn, color_theme))
     except KeyboardInterrupt:
-        return []
+        raise CursesFzfAborted("fuzzyfinder aborted by user") from None
 
 
 def _fzf(
@@ -149,7 +149,7 @@ def _fzf(
         # read input
         key = stdscr.getch()
         if key == 27:  # Esc - abort
-            return []
+            raise CursesFzfAborted("fuzzyfinder aborted by user")
         elif key in (10, 13):  # Enter - accept selection
             return selected if multi else [filtered[cursor][0]] if filtered else []
         elif key in (259, curses.KEY_UP):  # move up
