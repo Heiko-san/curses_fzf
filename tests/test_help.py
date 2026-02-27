@@ -7,8 +7,8 @@ def test_base_window_renders_correctly():
     mock_stdscr = MagicMock(spec=curses.window)
     mock_stdscr.getmaxyx.return_value = (15, 25)
 
-    with patch('curses_fzf.fuzzyfinder.curses.color_pair') as mock_color_pair, \
-            patch('curses_fzf.fuzzyfinder.curses.textpad') as mock_textpad:
+    with patch('curses.color_pair') as mock_color_pair, \
+            patch('curses.textpad') as mock_textpad:
 
         mock_color_pair.side_effect = lambda x: x   # return color pair ID directly
 
@@ -33,8 +33,8 @@ def test_help():
     mock_stdscr.getmaxyx.return_value = (21, 40)
     mock_stdscr.getch.return_value = curses.KEY_F1 # simulate pressing F1 to exit help
 
-    with patch('curses_fzf.fuzzyfinder.curses.color_pair') as mock_color_pair, \
-            patch('curses_fzf.fuzzyfinder.curses.textpad') as mock_textpad:
+    with patch('curses.color_pair') as mock_color_pair, \
+            patch('curses.textpad') as mock_textpad:
 
         mock_color_pair.side_effect = lambda x: x   # return color pair ID directly
 

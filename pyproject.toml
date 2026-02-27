@@ -7,7 +7,7 @@ name = "curses-fzf"
 dynamic = ["version"]
 description = "A pure python implementation of fzf (fuzzyfinder) with some additional features using the curses library."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.8"
 license = "MIT"
 license-files = ["LICEN[CS]E.*"]
 authors = [{name = "Heiko Finzel", email = "heikofinzel@googlemail.com"}]
@@ -24,6 +24,8 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
