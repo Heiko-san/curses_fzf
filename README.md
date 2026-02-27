@@ -104,9 +104,9 @@ The default implementation always returns `False`.
 
 ```py
 import curses
-from curses_fzf import fuzzyfinder, ScoringResult, Color
+from curses_fzf import fuzzyfinder, ScoringResult, Color, ColorTheme
 
-def my_preview(preview_window: curses.window, item: Any, result: ScoringResult) -> str:
+def my_preview(preview_window: curses.window, color_theme: ColorTheme, item: Any, result: ScoringResult) -> str:
     preview_window.addstr(1, 1, item.description, curses.color_pair(Color.RED))
     return ""
 
@@ -127,8 +127,8 @@ The `fuzzyfinder` will take care of the text not leaking out of the window bound
 Or you return an empty string and use `preview_window` to modify the curses window manually.
 If you do so, you should ensure to handle window boundaries correctly
 to avoid crashes, e.g. on terminal resizing.
-The static class `Color` will help you with using pre-defined text coloring.
-If you want to register your own `color_pair`s, the indexes 1 to 30 are safe to use.
+See `ColorTheme` section for information on coloring, the selected `color_theme`
+is also provided to the `preview` function.
 
 See `examples` folder for more detailed code snippets.
 
@@ -190,6 +190,18 @@ and `length` identifies, it is added to the `score` field of this `ScoringResult
 `ScoringResult` also assists with tokenization of the `query` and `candidate`,
 providing the fields `query`, `query_lower`, `query_words_with_index`, `candidate`,
 `candidate_lower` and `candidate_words_with_index`.
+
+## ColorTheme Customization
+
+```py
+from curses_fzf import fuzzyfinder, ColorTheme, Color
+
+choices = fuzzyfinder(data, color_theme=ColorTheme(text=Color.CYAN))
+```
+
+`ColorTheme` can be used to customize text colors, e.g. to increase readability.
+Use the indexes defined via `Color` enum.
+If you want to register your own `color_pairs`, the indexes 1 to 29 are safe to use.
 
 ## Autoreturn
 

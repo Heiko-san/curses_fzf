@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import curses
 from typing import Any
-from curses_fzf import fuzzyfinder, ScoringResult
+from curses_fzf import fuzzyfinder, ScoringResult, ColorTheme
 import yaml
 
 
-def yaml_preview(preview_window: curses.window, item: Any, result: ScoringResult) -> str:
+def yaml_preview(preview_window: curses.window, color_theme: ColorTheme, item: Any, result: ScoringResult) -> str:
     """
     A preview function using the simple text return mechanism.
     """

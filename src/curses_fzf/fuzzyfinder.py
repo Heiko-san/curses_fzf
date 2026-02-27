@@ -1,30 +1,9 @@
 import curses
 import curses.textpad
-from typing import Any, List, Tuple, Callable
+from typing import Any, List, Optional, Tuple, Callable
 from .scoring import ScoringResult, scoring_full_words
 from .errors import CursesFzfAssertion
-
-class Color:
-    """
-    Indexes of curses color pairs.
-    """
-    RED = 31
-    GREEN = 32
-    YELLOW = 33
-    BLUE = 34
-    MAGENTA = 35
-    CYAN = 36
-    WHITE = 37
-    BLACK_ON_RED = 41
-    BLACK_ON_GREEN = 42
-    BLACK_ON_YELLOW = 43
-    BLACK_ON_BLUE = 44
-    BLACK_ON_MAGENTA = 45
-    BLACK_ON_CYAN = 46
-    BLACK_ON_WHITE = 47
-    WHITE_ON_RED = 51
-    WHITE_ON_BLUE = 54
-    WHITE_ON_MAGENTA = 55
+from .colors import _init_curses, ColorTheme
 
 
 def fuzzyfinder(
@@ -33,11 +12,12 @@ def fuzzyfinder(
         query: str = "",
         display: Callable[[Any], str] = lambda item: str(item),
         preselect: Callable[[Any, ScoringResult], bool] = lambda item, result: False,
-        preview: Callable[[curses.window, Any, ScoringResult], str] | None = None,
+        preview: Callable[[curses.window, ColorTheme, Any, ScoringResult], str] | None = None,
         score: Callable[[str, str], ScoringResult] = scoring_full_words,
         page_size: int = 10,
         preview_window_percentage: int = 40,
         autoreturn: int = 0,
+        color_theme: Optional[ColorTheme] = None,
     ) -> List[Any]:
     """
     TODO write help
@@ -45,36 +25,9 @@ def fuzzyfinder(
     """
     try:
         return curses.wrapper(lambda stdscr: _fzf(stdscr, items, multi, query,
-            display, preselect, preview, score, page_size, preview_window_percentage, autoreturn))
+            display, preselect, preview, score, page_size, preview_window_percentage, autoreturn, color_theme))
     except KeyboardInterrupt:
         return []
-
-
-def _init_curses() -> None:
-    """
-    Setup curses & colors.
-    """
-    # hide cursor & setup colors
-    curses.curs_set(0)
-    curses.start_color()
-    curses.use_default_colors()
-    curses.init_pair(Color.RED, curses.COLOR_RED, -1)  # no matches
-    curses.init_pair(Color.GREEN, curses.COLOR_GREEN, -1)  # selected
-    curses.init_pair(Color.YELLOW, curses.COLOR_YELLOW, -1)  # header / footer
-    curses.init_pair(Color.BLUE, curses.COLOR_BLUE, -1)
-    curses.init_pair(Color.MAGENTA, curses.COLOR_MAGENTA, -1)
-    curses.init_pair(Color.CYAN, curses.COLOR_CYAN, -1)
-    curses.init_pair(Color.WHITE, curses.COLOR_WHITE, -1)  # normal text
-    curses.init_pair(Color.BLACK_ON_RED, curses.COLOR_WHITE, curses.COLOR_RED)
-    curses.init_pair(Color.BLACK_ON_GREEN, curses.COLOR_BLACK, curses.COLOR_GREEN)  # cursor+selected
-    curses.init_pair(Color.BLACK_ON_YELLOW, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-    curses.init_pair(Color.BLACK_ON_BLUE, curses.COLOR_BLACK, curses.COLOR_BLUE)
-    curses.init_pair(Color.BLACK_ON_MAGENTA, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
-    curses.init_pair(Color.BLACK_ON_CYAN, curses.COLOR_BLACK, curses.COLOR_CYAN)
-    curses.init_pair(Color.BLACK_ON_WHITE, curses.COLOR_BLACK, curses.COLOR_WHITE)  # cursor
-    curses.init_pair(Color.WHITE_ON_RED, curses.COLOR_WHITE, curses.COLOR_RED)
-    curses.init_pair(Color.WHITE_ON_BLUE, curses.COLOR_WHITE, curses.COLOR_BLUE)
-    curses.init_pair(Color.WHITE_ON_MAGENTA, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
 
 
 def _fzf(
@@ -84,16 +37,19 @@ def _fzf(
         query: str,
         display: Callable[[Any], str],
         preselect: Callable[[Any, ScoringResult], bool],
-        preview: Callable[[curses.window, Any, ScoringResult], str] | None,
+        preview: Callable[[curses.window, ColorTheme, Any, ScoringResult], str] | None,
         score: Callable[[str, str], ScoringResult],
         page_size: int,
         preview_window_percentage: int,
         autoreturn: int,
+        color_theme: Optional[ColorTheme]
     ) -> List[Any]:
     """
     Fuzzyfinder window main loop function.
     """
     _init_curses()
+    if color_theme is None:
+        color_theme = ColorTheme()
     # setup variables
     cursor = 0
     show_preview = True
@@ -132,10 +88,11 @@ def _fzf(
             f"> {query}",
             (f"{len(selected)} selected | {len(filtered)} matches | ↑↓ = navigate | "
             f"{'TAB = toggle | ' if multi else ''}ENTER = accept | ESC = abort | F1 = help"),
+            color_theme,
         )
-        stdscr.addstr(1, 2, " ITEMS ", curses.color_pair(Color.YELLOW))
+        stdscr.addstr(1, 2, " ITEMS ", curses.color_pair(color_theme.window_title))
         if not filtered:
-            stdscr.addstr(3, item_col_start + 2, "No matching items!", curses.color_pair(Color.RED))
+            stdscr.addstr(3, item_col_start + 2, "No matching items!", curses.color_pair(color_theme.no_match))
 
         # dynamic window content (item list)
         viewport_height = height - 6  # header, footer, 2 frame lines and an empty line on top & bottom
@@ -148,21 +105,21 @@ def _fzf(
             if len(display_item.splitlines()) > 1:
                 raise CursesFzfAssertion("display function must return single-line strings")
             marker = "   "
-            base_color = Color.WHITE
+            base_color =color_theme.text
             if i == cursor and item in selected:
                 marker = "✅ "
-                base_color = Color.BLACK_ON_GREEN
+                base_color = color_theme.cursor_selected
             elif i == cursor:
-                base_color = Color.BLACK_ON_WHITE
+                base_color = color_theme.cursor
             elif item in selected:
                 marker = "✅ "
-                base_color = Color.GREEN
+                base_color = color_theme.selected
             stdscr.addstr(row, item_col_start, marker, curses.color_pair(base_color))
             for j, c in enumerate(display_item[:width-10]):
                 color = base_color
                 for match in score_result.matches:
                     if match[0] <= j < match[0] + match[1]:
-                        color = Color.BLACK_ON_CYAN
+                        color = color_theme.highlight
                 stdscr.addstr(row, item_col_start + 3 + j, c, curses.color_pair(color))
 
         # dynamic window content (item preview)
@@ -172,16 +129,16 @@ def _fzf(
         if show_preview and preview is not None:
             sub_win = curses.newwin(height - 4, int(width * preview_window_percentage / 100), 2, int(width * (100 - preview_window_percentage) / 100) - 2)
             sub_win.box()
-            sub_win.addstr(0, 2, " PREVIEW ", curses.color_pair(Color.YELLOW))
+            sub_win.addstr(0, 2, " PREVIEW ", curses.color_pair(color_theme.window_title))
             if filtered:
-                text = preview(sub_win, filtered[cursor][0], filtered[cursor][1])
+                text = preview(sub_win, color_theme, filtered[cursor][0], filtered[cursor][1])
                 if text:
                     sub_h, sub_w = sub_win.getmaxyx()
                     i = 2
                     for line in text.splitlines():
                         if i > sub_h - 3:
                             break
-                        sub_win.addstr(i, 4, line[:sub_w - 6], curses.color_pair(Color.WHITE))
+                        sub_win.addstr(i, 4, line[:sub_w - 6], curses.color_pair(color_theme.text))
                         i += 1
 
         # render windows to screen
@@ -238,22 +195,22 @@ def _fzf(
             query += chr(key)
             cursor = 0
         elif key in (265, curses.KEY_F1):  # F1 → Help
-            _help(stdscr, page_size)
+            _help(stdscr, page_size, color_theme)
 
 
-def _base_window(stdscr: curses.window, header: str, footer: str) -> Tuple[int, int]:
+def _base_window(stdscr: curses.window, header: str, footer: str, color_theme: ColorTheme) -> Tuple[int, int]:
     """
     Draw a basic window with frame, header and footer line.
     """
     stdscr.clear()
     height, width = stdscr.getmaxyx()
     curses.textpad.rectangle(stdscr, 1,0, height-2, width-1)
-    stdscr.addstr(0, 2, header[:width-4], curses.color_pair(Color.YELLOW,))
-    stdscr.addstr(height-1, 2, footer[:width-4], curses.color_pair(Color.YELLOW,))
+    stdscr.addstr(0, 2, header[:width-4], curses.color_pair(color_theme.query))
+    stdscr.addstr(height-1, 2, footer[:width-4], curses.color_pair(color_theme.footer))
     return height, width
 
 
-def _help(stdscr: curses.window, page_size) -> None:
+def _help(stdscr: curses.window, page_size: int, color_theme: ColorTheme) -> None:
     """
     Print a help screen.
     """
@@ -284,8 +241,8 @@ def _help(stdscr: curses.window, page_size) -> None:
         )),
     )
     while True:
-        height, width = _base_window(stdscr, "", "F1 = close help")
-        stdscr.addstr(1, 2, " HELP ", curses.color_pair(Color.YELLOW))
+        height, width = _base_window(stdscr, "", "F1 = close help", color_theme)
+        stdscr.addstr(1, 2, " HELP ", curses.color_pair(color_theme.window_title))
         line = 2
         section_start = 5
         col1_start = section_start + 2
@@ -295,17 +252,17 @@ def _help(stdscr: curses.window, page_size) -> None:
                 break
             line += 1
             # print section, limit width to one space before frame
-            stdscr.addstr(line, section_start, str(section[0][:width - section_start - 2]), curses.color_pair(Color.WHITE))
+            stdscr.addstr(line, section_start, str(section[0][:width - section_start - 2]), curses.color_pair(color_theme.text))
             line += 2
             for key in section[1]:
                 if line > height-4:
                     break
                 # print key-column with wixed width
-                stdscr.addstr(line, col1_start, str(key[0][:min(col1_width, width - col1_start - 2)]), curses.color_pair(Color.WHITE))
+                stdscr.addstr(line, col1_start, str(key[0][:min(col1_width, width - col1_start - 2)]), curses.color_pair(color_theme.text))
                 # print key description, limit width to one space before frame
                 if width > col1_width + col1_start + 3:
                     stdscr.addstr(line, col1_start + col1_width + 2,
-                        str(key[1][:width - col1_start - col1_width - 4]), curses.color_pair(Color.WHITE))
+                        str(key[1][:width - col1_start - col1_width - 4]), curses.color_pair(color_theme.text))
                 line += 1
         stdscr.refresh()
         if stdscr.getch() == curses.KEY_F1:

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "curses-fzf"
 dynamic = ["version"]
-description = "A pure python implementation of fzf (fuzzyfinder) with some additional features using curses lib."
+description = "A pure python implementation of fzf (fuzzyfinder) with some additional features using the curses library."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -15,7 +15,7 @@ maintainers = [{name = "Heiko Finzel", email = "heikofinzel@googlemail.com"}]
 keywords = ["python", "fzf", "fuzzyfinder", "fuzzy", "finder", "curses", "cli", "filter", "search"]
 # https://pypi.org/classifiers/
 classifiers = [
-    "Development Status :: 4 - Beta",
+    Development Status :: 3 - Alpha,
     "Environment :: Console",
     "Environment :: Console :: Curses",
     "Intended Audience :: Developers",
@@ -24,6 +24,7 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",

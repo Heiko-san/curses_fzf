@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import curses
 from typing import Any
-from curses_fzf import fuzzyfinder, Color, ScoringResult
+from curses_fzf import fuzzyfinder, Color, ScoringResult, ColorTheme
 
-def curses_preview(preview_window: curses.window, item: Any, result: ScoringResult) -> str:
+def curses_preview(preview_window: curses.window, color_theme: ColorTheme, item: Any, result: ScoringResult) -> str:
     """
     A preview function using the preview_window to have more control over what is displayed and how.
     Return an empty string to indicate the fuzzyfinder should not try to fill the preview_window.
@@ -13,12 +13,12 @@ def curses_preview(preview_window: curses.window, item: Any, result: ScoringResu
     # you should limit your output to avoid crashes.
     # If you use the string-return preview, fuzzyfinder takes care of this.
     if height > 3:
-        preview_window.addstr(2, 4, "score:", curses.color_pair(Color.WHITE))
+        preview_window.addstr(2, 4, "score:", curses.color_pair(color_theme.text))
         preview_window.addstr(2, 11, str(result.score), curses.color_pair(Color.WHITE_ON_RED))
     x = 4
     y = 4
     for i, c in enumerate(result.candidate):
-        color = Color.WHITE
+        color = color_theme.text
         for match in result.matches:
             if match[0] <= i < match[0] + match[1]:
                 color = Color.WHITE_ON_MAGENTA
