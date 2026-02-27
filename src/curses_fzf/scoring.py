@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Tuple, Optional
+
 import re
+from typing import Optional, Tuple
 
 RE_WORD = re.compile(r"\S+")
 

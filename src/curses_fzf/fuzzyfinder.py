@@ -1,9 +1,10 @@
 import curses
-import curses.textpad
-from typing import Any, List, Optional, Tuple, Callable
+from typing import Any, Callable, List, Optional
+
+from .colors import ColorTheme, _init_curses
+from .help import _help, _base_window
+from .errors import CursesFzfAborted, CursesFzfAssertion
 from .scoring import ScoringResult, scoring_full_words
-from .errors import CursesFzfAssertion, CursesFzfAborted
-from .colors import _init_curses, ColorTheme
 
 
 def fuzzyfinder(
@@ -12,7 +13,7 @@ def fuzzyfinder(
         query: str = "",
         display: Callable[[Any], str] = lambda item: str(item),
         preselect: Callable[[Any, ScoringResult], bool] = lambda item, result: False,
-        preview: Callable[[curses.window, ColorTheme, Any, ScoringResult], str] | None = None,
+        preview: Optional[Callable[[curses.window, ColorTheme, Any, ScoringResult], str]] = None,
         score: Callable[[str, str], ScoringResult] = scoring_full_words,
         page_size: int = 10,
         preview_window_percentage: int = 40,
@@ -37,7 +38,7 @@ def _fzf(
         query: str,
         display: Callable[[Any], str],
         preselect: Callable[[Any, ScoringResult], bool],
-        preview: Callable[[curses.window, ColorTheme, Any, ScoringResult], str] | None,
+        preview: Optional[Callable[[curses.window, ColorTheme, Any, ScoringResult], str]],
         score: Callable[[str, str], ScoringResult],
         page_size: int,
         preview_window_percentage: int,
@@ -196,74 +197,3 @@ def _fzf(
             cursor = 0
         elif key in (265, curses.KEY_F1):  # F1 → Help
             _help(stdscr, page_size, color_theme)
-
-
-def _base_window(stdscr: curses.window, header: str, footer: str, color_theme: ColorTheme) -> Tuple[int, int]:
-    """
-    Draw a basic window with frame, header and footer line.
-    """
-    stdscr.clear()
-    height, width = stdscr.getmaxyx()
-    curses.textpad.rectangle(stdscr, 1,0, height-2, width-1)
-    stdscr.addstr(0, 2, header[:width-4], curses.color_pair(color_theme.query))
-    stdscr.addstr(height-1, 2, footer[:width-4], curses.color_pair(color_theme.footer))
-    return height, width
-
-
-def _help(stdscr: curses.window, page_size: int, color_theme: ColorTheme) -> None:
-    """
-    Print a help screen.
-    """
-    help = (
-        ("Fuzzy Finder Query", (
-            ("text characters", "Enter a fuzzy finder query."),
-            ("BACKSPACE", "Remove last character from query."),
-            ("CTRL + X", "Clear entire query.")
-        )),
-        ("List Movement", (
-            ("ARROW-UP", "Move up 1 entry."),
-            ("ARROW-DOWN", "Move down 1 entry."),
-            ("PAGE-UP", f"Move up {page_size} entries."),
-            ("PAGE-DOWN", f"Move down {page_size} entries."),
-            ("HOME", "Move to first item."),
-            ("END", "Move to last item."),
-        )),
-        ("Item Selection", (
-            ("TAB", "Toggle selection of the current item (multi-select)."),
-            ("CTRL + A", "Select all items matching current filter query (multi-select)."),
-            ("CTRL + U", "Deselect all items matching current filter query (multi-select)."),
-        )),
-        ("Control Commands", (
-            ("ENTER", "Accept the current item(s)."),
-            ("ESC", "Abort fuzzy finder returning an empty list."),
-            ("CTRL + P", "Toggle preview window (if a preview function is provided)."),
-            ("F1", "Toggle this help screen."),
-        )),
-    )
-    while True:
-        height, width = _base_window(stdscr, "", "F1 = close help", color_theme)
-        stdscr.addstr(1, 2, " HELP ", curses.color_pair(color_theme.window_title))
-        line = 2
-        section_start = 5
-        col1_start = section_start + 2
-        col1_width = 15
-        for section in help:
-            if line > height-4:
-                break
-            line += 1
-            # print section, limit width to one space before frame
-            stdscr.addstr(line, section_start, str(section[0][:width - section_start - 2]), curses.color_pair(color_theme.text))
-            line += 2
-            for key in section[1]:
-                if line > height-4:
-                    break
-                # print key-column with wixed width
-                stdscr.addstr(line, col1_start, str(key[0][:min(col1_width, width - col1_start - 2)]), curses.color_pair(color_theme.text))
-                # print key description, limit width to one space before frame
-                if width > col1_width + col1_start + 3:
-                    stdscr.addstr(line, col1_start + col1_width + 2,
-                        str(key[1][:width - col1_start - col1_width - 4]), curses.color_pair(color_theme.text))
-                line += 1
-        stdscr.refresh()
-        if stdscr.getch() == curses.KEY_F1:
-            return
