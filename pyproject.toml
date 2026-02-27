@@ -15,7 +15,7 @@ maintainers = [{name = "Heiko Finzel", email = "heikofinzel@googlemail.com"}]
 keywords = ["python", "fzf", "fuzzyfinder", "fuzzy", "finder", "curses", "cli", "filter", "search"]
 # https://pypi.org/classifiers/
 classifiers = [
-    Development Status :: 3 - Alpha,
+    "Development Status :: 3 - Alpha",
     "Environment :: Console",
     "Environment :: Console :: Curses",
     "Intended Audience :: Developers",
