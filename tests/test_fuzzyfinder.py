@@ -536,3 +536,36 @@ def test_calculate_preselection():
     fzf.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
     fzf._calculate_preselection()
     assert fzf.selected == ["item2"]
+
+def test_get_return_value():
+    sr = ScoringResult("", "")
+    fzf_multi = FuzzyFinder(multi=True)
+    fzf_multi.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
+    # multi empty selection
+    assert fzf_multi._get_return_value() == []
+    # multi non-empty selection
+    fzf_multi.selected = ["item1", "item2"]
+    assert fzf_multi._get_return_value() == ["item1", "item2"]
+    fzf_single = FuzzyFinder(multi=False)
+    fzf_single.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
+    # sinple empty selection should return the currently highlighted item
+    fzf_single.kb_move_items_cursor_absolute(1)
+    assert fzf_single._get_return_value() == ["item2"]
+    # single non-empty (manipulated) selection should return the selected items list
+    fzf_single.selected = ["item3"]
+    assert fzf_single._get_return_value() == ["item3"]
+
+def test_autoreturn():
+    sr = ScoringResult("", "")
+    fzf_multi = FuzzyFinder(multi=True, autoreturn=3)
+    fzf_multi.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
+    assert fzf_multi._autoreturn() == ["item1", "item2", "item3"]
+    fzf_multi.filtered = [("item1", sr), ("item2", sr)]
+    assert fzf_multi._autoreturn() == None
+    fzf_multi.filtered = [("item1", sr), ("item2", sr), ("item3", sr), ("item4", sr)]
+    assert fzf_multi._autoreturn() == None
+    fzf_single = FuzzyFinder(multi=False, autoreturn=3)
+    fzf_single.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
+    assert fzf_single._autoreturn() == None
+    fzf_single.filtered = [("item1", sr)]
+    assert fzf_single._autoreturn() == ["item1"]

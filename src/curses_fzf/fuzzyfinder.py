@@ -1,5 +1,6 @@
 import curses
 from encodings.punycode import T
+from enum import auto
 from operator import le
 from typing import Any, Callable, List, Tuple, Optional
 
@@ -536,8 +537,9 @@ class FuzzyFinder:
         Calculate the preselected items based on the current filter and
         preselection function.
         """
-        self.selected = [item_tuple[0] for item_tuple in self.filtered
-                        if self.multi and self.preselect(*item_tuple)]
+        if self.multi:
+            self.selected = [item_tuple[0] for item_tuple in self.filtered
+                            if self.preselect(*item_tuple)]
 
     def _handle_input(self, key: int) -> None:
         """
@@ -551,17 +553,48 @@ class FuzzyFinder:
         elif char.isprintable():
             self.kb_add_to_query_cursor(char)
 
+    def _get_return_value(self) -> List[Any]:
+        """
+        Get the return value based on the current selection and multi mode.
+        """
+        # in multi mode return the list of selected items, even if it is empty
+        # in single mode return the selected items list if not empty (e.g. if
+        # the user manipulated it manually)
+        if self.multi or self.selected:
+            return self.selected
+        # in single mode return the currently highlighted item if there is one,
+        # otherwise an empty list
+        return [self.filtered[self.cursor_items][0]] if self.filtered else []
+
+    def _autoreturn(self) -> Optional[List[Any]]:
+        """
+        Check if the conditions for autoreturn are met and return the
+        corresponding items.
+        If is not 0 return directly if in single mode only 1 item is provided
+        or left after initial filter.
+        In multi mode the number of items need to match the number given
+        as autoreturn's value.
+        """
+        if self.autoreturn:
+            f_len = len(self.filtered)
+            if self.multi:
+                if f_len == self.autoreturn:
+                    return [x[0] for x in self.filtered]
+            elif f_len == 1:
+                return [self.filtered[0][0]]
+        return None
+
     def main_loop(self) -> List[Any]:
         if self.stdscr is None:
             raise CursesFzfAssertion("main_loop must be called after stdscr has been initialized")
-        _init_curses()
         self._calculate_filtered()
+        autoreturn_value = self._autoreturn()
+        if autoreturn_value is not None: return autoreturn_value
         self._calculate_preselection()
-        # TODO more loop
+        _init_curses()
         while True:
             self._calculate_filtered()
             # ...
             self._handle_input(self.stdscr.getch())
             if self.return_selection_now:
-                # TODO self.selected wird jetzt list of tuple
-                return self.selected if self.multi else [self.filtered[self.cursor_items][0]] if self.filtered else []
+                return self._get_return_value()
