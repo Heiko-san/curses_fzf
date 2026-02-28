@@ -1,4 +1,5 @@
 import curses
+from encodings.punycode import T
 from operator import le
 from typing import Any, Callable, List, Tuple, Optional
 
@@ -227,6 +228,8 @@ class FuzzyFinder:
         self.multi: bool = multi
         """Whether to allow selection of multiple items or not."""
         # internal state
+        self.stdscr: Optional[curses.window] = None
+        """The main curses window, will be set in main_loop."""
         self.show_preview = True
         """Show or hide the preview window."""
         self._query: str = query
@@ -239,7 +242,9 @@ class FuzzyFinder:
         """Whether the fuzzyfinder should end the main loop and return the selected items."""
         self.filtered: List[Tuple[Any, ScoringResult]] = []
         """The list of items filtered by the current query, each paired with its scoring result."""
-        self.selected: List[Any] = []
+        self.all_items: List[Any] = []
+        """The original list of all items given by the user."""
+        self.selected: List[Tuple[Any, ScoringResult]] = []
         """The list of currently selected items."""
         # TODO function pointers
         self.display = display
@@ -291,6 +296,38 @@ class FuzzyFinder:
             curses.KEY_F1: self.kb_show_help,  # 265
             # TODO else if chr(i).isprintable() -> kb_add_to_query_cursor chr(key)
         }
+
+# properties
+
+    @property
+    def cursor_items(self) -> int:
+        """
+        The index of the cursor inside the filtered list of items.
+        """
+        return self._cursor_items
+
+    @property
+    def cursor_query(self) -> int:
+        """
+        The index of the cursor inside the query string.
+        """
+        return self._cursor_query
+
+    @property
+    def query(self) -> str:
+        """
+        The query entered by the user or preseeded on initialization.
+        Setting this property will also reset the items cursor
+        and move the query cursor to the end of the query.
+        """
+        return self._query
+
+    @query.setter
+    def query(self, value: str) -> None:
+        if self._query != value:
+            self._cursor_items = 0
+            self._cursor_query = len(value)
+            self._query = value
 
 # keybinding functions
 
@@ -353,7 +390,7 @@ class FuzzyFinder:
         Toggle the selection state of the current item (only in multi mode).
         """
         if self.multi and self.filtered:
-            item = self.filtered[self.cursor_items][0]
+            item = self.filtered[self.cursor_items]
             if item in self.selected:
                 self.selected.remove(item)
             else:
@@ -366,9 +403,8 @@ class FuzzyFinder:
         """
         if self.multi:
             for entry in self.filtered:
-                item = entry[0]
-                if item not in self.selected:
-                    self.selected.append(item)
+                if entry not in self.selected:
+                    self.selected.append(entry)
 
     def kb_deselect_all(self) -> None:
         """
@@ -377,9 +413,8 @@ class FuzzyFinder:
         """
         if self.multi:
             for entry in self.filtered:
-                item = entry[0]
-                if item in self.selected:
-                    self.selected.remove(item)
+                if entry in self.selected:
+                    self.selected.remove(entry)
 
     def kb_reset_query(self) -> None:
         """
@@ -412,8 +447,6 @@ class FuzzyFinder:
         # the list and even if it doesn't a completely other item may be selected)
         if text:
             self._cursor_items = 0
-        # TODO marker is ON index (e.g. 0) and text is inserted BEFORE MARKER
-        # ^ this is shell behavior... length(query) needs to be valid to add at the end
 
     def kb_add_to_query_cursor(self, text: str) -> None:
         """
@@ -478,86 +511,55 @@ class FuzzyFinder:
         Keybinding function:
         Show the help screen.
         """
-        # TODO implement help screen
-        pass
+        if self.stdscr: _help(self.stdscr, self.page_size, self.color_theme)
 
-# properties
+# loop functions
 
-    @property
-    def cursor_items(self) -> int:
+    def _calculate_filtered(self) -> None:
         """
-        The index of the cursor inside the filtered list of items.
+        Calculate the filtered list of items based on the current query
+        and scoring function.
         """
-        return self._cursor_items
-
-    @property
-    def cursor_query(self) -> int:
-        """
-        The index of the cursor inside the query string.
-        """
-        return self._cursor_query
-
-    @property
-    def query(self) -> str:
-        """
-        The query entered by the user or preseeded on initialization.
-        Setting this property will also reset the items cursor
-        and move the query cursor to the end of the query.
-        """
-        return self._query
-
-    @query.setter
-    def query(self, value: str) -> None:
-        if self._query != value:
-            self._cursor_items = 0
-            self._cursor_query = len(value)
-            self._query = value
-
-# TODO
-
-    def _find(self, items: List[Any]) -> List[Any]:
         self.filtered = sorted(
             [
-                (item, score_result) for item in items
+                (item, score_result) for item in self.all_items
                 if (score_result := self.score(
-                    self._query, self.display(item))) > 0
+                    self.query, self.display(item))) > 0
             ],
             key=lambda x: x[1], reverse=True
         )
-        return []
 
-    def _init_curses(self) -> None:
+    def _calculate_preselection(self) -> None:
         """
-        Setup curses & colors.
+        Calculate the preselected items based on the current filter and
+        preselection function.
         """
-        # hide cursor & setup colors
-        curses.curs_set(0)
-        curses.start_color()
-        curses.use_default_colors()
-        curses.init_pair(Color.BLACK, curses.COLOR_BLACK, -1)
-        curses.init_pair(Color.RED, curses.COLOR_RED, -1)
-        curses.init_pair(Color.GREEN, curses.COLOR_GREEN, -1)
-        curses.init_pair(Color.YELLOW, curses.COLOR_YELLOW, -1)
-        curses.init_pair(Color.BLUE, curses.COLOR_BLUE, -1)
-        curses.init_pair(Color.MAGENTA, curses.COLOR_MAGENTA, -1)
-        curses.init_pair(Color.CYAN, curses.COLOR_CYAN, -1)
-        curses.init_pair(Color.WHITE, curses.COLOR_WHITE, -1)
-        curses.init_pair(Color.BLACK_ON_RED, curses.COLOR_WHITE, curses.COLOR_RED)
-        curses.init_pair(Color.BLACK_ON_GREEN, curses.COLOR_BLACK, curses.COLOR_GREEN)
-        curses.init_pair(Color.BLACK_ON_YELLOW, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-        curses.init_pair(Color.BLACK_ON_BLUE, curses.COLOR_BLACK, curses.COLOR_BLUE)
-        curses.init_pair(Color.BLACK_ON_MAGENTA, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
-        curses.init_pair(Color.BLACK_ON_CYAN, curses.COLOR_BLACK, curses.COLOR_CYAN)
-        curses.init_pair(Color.BLACK_ON_WHITE, curses.COLOR_BLACK, curses.COLOR_WHITE)
-        curses.init_pair(Color.WHITE_ON_RED, curses.COLOR_WHITE, curses.COLOR_RED)
-        curses.init_pair(Color.WHITE_ON_BLUE, curses.COLOR_WHITE, curses.COLOR_BLUE)
-        curses.init_pair(Color.WHITE_ON_MAGENTA, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
+        self.selected = [item_tuple for item_tuple in self.filtered
+                        if self.multi and self.preselect(*item_tuple)]
 
+    def _handle_input(self, key: int) -> None:
+        """
+        Handle the given key input by calling the corresponding keybinding function
+        or adding the character to the query if it is a printable character.
+        """
+        kb_function = self.keymap.get(key)
+        char = chr(key)
+        if kb_function:
+            kb_function()
+        elif char.isprintable():
+            self.kb_add_to_query_cursor(char)
 
-    def _base_window(self, stdscr: curses.window, header: str, footer: str) -> Tuple[int, int]:
-        height, width = stdscr.getmaxyx()
-        stdscr.clear()
-        stdscr.box()
-        stdscr.addstr(0, 2, f" {header} ", curses.color_pair(self.color_theme.window_title))
-        stdscr.addstr(height - 1, 2, f" {footer} ", curses.color_pair(self.color_theme.window_title))
-        return height, width
+    def main_loop(self) -> List[Any]:
+        if self.stdscr is None:
+            raise CursesFzfAssertion("main_loop must be called after stdscr has been initialized")
+        _init_curses()
+        self._calculate_filtered()
+        self._calculate_preselection()
+        # TODO more loop
+        while True:
+            self._calculate_filtered()
+            # ...
+            self._handle_input(self.stdscr.getch())
+            if self.return_selection_now:
+                # TODO self.selected wird jetzt list of tuple
+                return self.selected if self.multi else [self.filtered[self.cursor_items][0]] if self.filtered else []
