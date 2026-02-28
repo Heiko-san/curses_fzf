@@ -1,9 +1,10 @@
 import curses
-from typing import Any, Callable, List, Optional
+from operator import le
+from typing import Any, Callable, List, Tuple, Optional
 
-from .colors import ColorTheme, _init_curses
+from .colors import ColorTheme, Color, _init_curses
 from .help import _help, _base_window
-from .errors import CursesFzfAborted, CursesFzfAssertion
+from .errors import *
 from .scoring import ScoringResult, scoring_full_words
 
 
@@ -197,3 +198,355 @@ def _fzf(
             cursor = 0
         elif key in (265, curses.KEY_F1):  # F1 → Help
             _help(stdscr, page_size, color_theme)
+
+
+class FuzzyFinder:
+    """
+    """
+    def __init__(self,
+            multi: bool = False,
+            query: str = "",
+            display: Callable[[Any], str] = lambda item: str(item),
+            preselect: Callable[[Any, ScoringResult], bool] = lambda item, result: False,
+            preview: Optional[Callable[[curses.window, ColorTheme, Any, ScoringResult], str]] = None,
+            score: Callable[[str, str], ScoringResult] = scoring_full_words,
+            page_size: int = 10,
+            preview_window_percentage: int = 40,
+            autoreturn: int = 0,
+            color_theme: Optional[ColorTheme] = None,
+        ) -> None:
+        # TODO
+        self.multi = multi
+        self.page_size = page_size
+        self.preview_window_percentage = preview_window_percentage
+        self.autoreturn = autoreturn
+        if color_theme is None:
+            color_theme = ColorTheme()
+        self.color_theme = color_theme
+        # TODO user settings
+        self.page_size = page_size
+        # TODO !!! query setter with cursor korrektur
+        self._query = query
+        """The query entered by the user or preseeded on initialization."""
+        # internal state
+        self._cursor_items: int = 0
+        """The index of the cursor inside the filtered list of items."""
+        self._cursor_query: int = len(query)
+        """The index of the cursor inside the filter query."""
+        self.return_selection_now: bool = False
+        """Whether the fuzzyfinder should end the main loop and return the selected items."""
+        self.filtered: List[Tuple[Any, ScoringResult]] = []
+        """The list of items filtered by the current query, each paired with its scoring result."""
+        self.selected: List[Any] = []
+        """The list of currently selected items."""
+        self.show_preview = True
+        # TODO function pointers
+        self.display = display
+        self.preselect = preselect
+        self.preview = preview
+        self.score = score
+        # keymap
+        self.keymap = {
+            # ARROW-UP: move cursor up 1 position in filter list
+            curses.KEY_UP: lambda: self.kb_move_items_cursor_relative(-1),  # 259
+            # ARROW-DOWN: move cursor down 1 position in filter list
+            curses.KEY_DOWN: lambda: self.kb_move_items_cursor_relative(1),  # 258
+            # PAGE-UP: move cursor up by page_size positions
+            curses.KEY_PPAGE: lambda: self.kb_move_items_cursor_relative(-self.page_size),  # 339
+            # PAGE-DOWN: move cursor down by page_size positions
+            curses.KEY_NPAGE: lambda: self.kb_move_items_cursor_relative(self.page_size),  # 338
+            # HOME: move cursor to start of list
+            curses.KEY_HOME: lambda: self.kb_move_items_cursor_absolute(0),  # 262
+            # END: move cursor to end of list
+            curses.KEY_END: lambda: self.kb_move_items_cursor_absolute(len(self.filtered) - 1),  # 360
+            # ARROW-LEFT: move cursor left 1 position in query
+            curses.KEY_LEFT: lambda: self.kb_move_query_cursor_relative(-1),  # 260
+            # ARROW-RIGHT: move cursor right 1 position in query
+            curses.KEY_RIGHT: lambda: self.kb_move_query_cursor_relative(1),  # 261
+            # Ctrl + X: clear the query
+            # TODO use Ctrl + K ? -> clear line in shell
+            24: self.kb_reset_query,
+            # BACKSPACE: remove the character before the cursor from the query
+            8: self.kb_remove_from_query_cursor,  # ASCII backspace
+            127: self.kb_remove_from_query_cursor,  # ASCII del
+            curses.KEY_BACKSPACE: self.kb_remove_from_query_cursor,  # 263
+            # DELETE: remove the character at the cursor from the query
+            curses.KEY_DC: lambda: self.kb_remove_from_query_cursor(False),  # 330
+            # ESC: raise abort exception
+            27: self.kb_abort_selection,
+            # ENTER: accept selection
+            10: self.kb_accept_selection,  # linefeed (classic enter key)
+            13: self.kb_accept_selection,  # carriage return (classic enter key)
+            curses.KEY_ENTER: lambda: self.kb_accept_selection,  # 343
+            # TAB: (de)select item (in multi mode)
+            9: self.kb_toggle_selection,  # Tab - (de)select item (in multi mode)
+            # Ctrl + A: select all from current filter (in multi mode)
+            1: self.kb_select_all,
+            # Ctrl + U: deselect all from current filter (in multi mode)
+            21: self.kb_deselect_all,
+        }
+
+    """
+        elif key == 16:  # Ctrl+P - toggle preview
+            show_preview = not show_preview
+        elif key in (265, curses.KEY_F1):  # F1 → Help
+            _help(stdscr, page_size, color_theme)
+
+        elif 32 <= key <= 126:  # add printable chars to query
+-> else if chr(i).isprintable()
+            query += chr(key)
+            cursor = 0
+    """
+
+# keybinding functions
+
+    def kb_move_items_cursor_absolute(self, position: int) -> None:
+        """
+        Keybinding function:
+        Move the items cursor to the absolute position inside the filtered list
+        while keeping it within bounds of the list.
+        """
+        self._cursor_items = max(0, min(len(self.filtered) - 1, position))
+
+    def kb_move_items_cursor_relative(self, offset: int) -> None:
+        """
+        Keybinding function:
+        Move the items cursor by offset while keeping it within bounds of
+        the filtered list.
+        """
+        self.kb_move_items_cursor_absolute(self.cursor_items + offset)
+
+    def kb_move_query_cursor_absolute(self, position: int) -> None:
+        """
+        Keybinding function:
+        Move the query cursor to the absolute position inside the query string
+        while keeping it within bounds of the string.
+        """
+        self._cursor_query = max(0, min(len(self.query), position))
+
+    def kb_move_query_cursor_relative(self, offset: int) -> None:
+        """
+        Keybinding function:
+        Move the query cursor by offset while keeping it within bounds of
+        the query string.
+        """
+        self.kb_move_query_cursor_absolute(self.cursor_query + offset)
+
+    def kb_abort_selection(self) -> None:
+        """
+        Keybinding function:
+        Abort the fuzzyfinder and raise the corresponding exception.
+        """
+        raise CursesFzfAborted("fuzzyfinder aborted by user")
+
+    def kb_accept_selection(self) -> None:
+        """
+        Keybinding function:
+        Accept the current selection and return it.
+        """
+        self.return_selection_now = True
+
+    def kb_toggle_selection(self) -> None:
+        """
+        Keybinding function:
+        Toggle the selection state of the current item (only in multi mode).
+        """
+        if self.multi and self.filtered:
+            item = self.filtered[self.cursor_items][0]
+            if item in self.selected:
+                self.selected.remove(item)
+            else:
+                self.selected.append(item)
+
+    def kb_select_all(self) -> None:
+        """
+        Keybinding function:
+        Select all items from the current filter (only in multi mode).
+        """
+        if self.multi:
+            for entry in self.filtered:
+                item = entry[0]
+                if item not in self.selected:
+                    self.selected.append(item)
+
+    def kb_deselect_all(self) -> None:
+        """
+        Keybinding function:
+        Deselect all items from the current filter (only in multi mode).
+        """
+        if self.multi:
+            for entry in self.filtered:
+                item = entry[0]
+                if item in self.selected:
+                    self.selected.remove(item)
+
+    def kb_reset_query(self) -> None:
+        """
+        Keybinding function:
+        Clear the query string and return the cursor to index 0.
+        """
+        self._query = ""
+        self._cursor_items = 0
+
+    def kb_add_to_query(self, text: str, index: int = -1) -> None:
+        """
+        Keybinding function:
+        Add the given text to the query before the given index.
+        Adjust the query cursor and reset the items cursor if necessary.
+        """
+        if index < 0:
+            index = len(self.query) + index + 1
+        if not 0 <= index <= len(self.query):
+            raise CursesFzfIndexOutOfBounds(
+                "index to add to query is out of bounds")
+        self._query = self.query[:index] + text + self.query[index:]
+        # if the curser is before the insertion leave it where it is
+        # otherwise move it according to insertion length
+        if self.cursor_query >= index:
+            self._cursor_query += len(text)
+        # we will filter the list by typing a query,
+        # so the old item cursor index is not valid anymore (it may leak out of
+        # the list and even if it doesn't a completely other item may be selected)
+        if text:
+            self._cursor_items = 0
+        # TODO marker is ON index (e.g. 0) and text is inserted BEFORE MARKER
+        # ^ this is shell behavior... length(query) needs to be valid to add at the end
+
+    def kb_add_to_query_cursor(self, text: str) -> None:
+        """
+        Keybinding function:
+        Add the given text to the query at the current query cursor position.
+        Adjust the query cursor and reset the items cursor if necessary.
+        """
+        self.kb_add_to_query(text, self.cursor_query)
+
+    def kb_remove_from_query(self, index: int = -1, length: int = 1) -> None:
+        """
+        Keybinding function:
+        Remove <length> characters from the query at position <index>
+        and return the item cursor to index 0.
+        The query cursor will be adjusted if it is after the remove index.
+        The index may also be negative, the default is -1 (last character).
+        The length may be higher than the actual length of the query,
+        but not negative.
+        """
+        if index < 0:
+            index = len(self.query) + index
+        if not 0 <= index < len(self.query):
+            raise CursesFzfIndexOutOfBounds(
+                "index to remove from query is out of bounds")
+        if length < 0:
+            raise CursesFzfIndexOutOfBounds(
+                "length to remove from query my not be negative")
+        if length > 0:
+            remainder = self.query[index + length:]
+            self._query = self.query[:index] + remainder
+            self._cursor_items = 0
+            # if the cursor is before or at the index leave it where it is
+            if self.cursor_query > index:
+                # if the cursor is in the removed part move it to the index
+                if index <= self.cursor_query <= index + length:
+                    self._cursor_query = index
+                # otherwise move it according to removed length
+                else:
+                    self._cursor_query -= length
+
+    def kb_remove_from_query_cursor(self, before: bool = True) -> None:
+        """
+        Keybinding function:
+        Remove one character from the query before query cursor position
+        and return the item cursor to index 0.
+        The query cursor will be adjusted.
+        If <before> is true this will behave like BACKSPACE, otherwise like DEL.
+        """
+        pos = self.cursor_query
+        out_of_bounds = False
+        if before:
+            pos -= 1
+            out_of_bounds = pos < 0
+        else:
+            out_of_bounds = pos >= len(self.query)
+        if out_of_bounds:
+            return
+        self.kb_remove_from_query(pos, 1)
+
+# properties
+
+    @property
+    def cursor_items(self) -> int:
+        """
+        The index of the cursor inside the filtered list of items.
+        """
+        return self._cursor_items
+
+    @property
+    def cursor_query(self) -> int:
+        """
+        The index of the cursor inside the query string.
+        """
+        return self._cursor_query
+
+    @property
+    def query(self) -> str:
+        """
+        The query entered by the user or preseeded on initialization.
+        Setting this property will also reset the items cursor
+        and move the query cursor to the end of the query.
+        """
+        return self._query
+
+    @query.setter
+    def query(self, value: str) -> None:
+        if self._query != value:
+            self._cursor_items = 0
+            self._cursor_query = len(value)
+            self._query = value
+
+# TODO
+
+    def _find(self, items: List[Any]) -> List[Any]:
+        self.filtered = sorted(
+            [
+                (item, score_result) for item in items
+                if (score_result := self.score(
+                    self._query, self.display(item))) > 0
+            ],
+            key=lambda x: x[1], reverse=True
+        )
+        return []
+
+    def _init_curses(self) -> None:
+        """
+        Setup curses & colors.
+        """
+        # hide cursor & setup colors
+        curses.curs_set(0)
+        curses.start_color()
+        curses.use_default_colors()
+        curses.init_pair(Color.BLACK, curses.COLOR_BLACK, -1)
+        curses.init_pair(Color.RED, curses.COLOR_RED, -1)
+        curses.init_pair(Color.GREEN, curses.COLOR_GREEN, -1)
+        curses.init_pair(Color.YELLOW, curses.COLOR_YELLOW, -1)
+        curses.init_pair(Color.BLUE, curses.COLOR_BLUE, -1)
+        curses.init_pair(Color.MAGENTA, curses.COLOR_MAGENTA, -1)
+        curses.init_pair(Color.CYAN, curses.COLOR_CYAN, -1)
+        curses.init_pair(Color.WHITE, curses.COLOR_WHITE, -1)
+        curses.init_pair(Color.BLACK_ON_RED, curses.COLOR_WHITE, curses.COLOR_RED)
+        curses.init_pair(Color.BLACK_ON_GREEN, curses.COLOR_BLACK, curses.COLOR_GREEN)
+        curses.init_pair(Color.BLACK_ON_YELLOW, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+        curses.init_pair(Color.BLACK_ON_BLUE, curses.COLOR_BLACK, curses.COLOR_BLUE)
+        curses.init_pair(Color.BLACK_ON_MAGENTA, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
+        curses.init_pair(Color.BLACK_ON_CYAN, curses.COLOR_BLACK, curses.COLOR_CYAN)
+        curses.init_pair(Color.BLACK_ON_WHITE, curses.COLOR_BLACK, curses.COLOR_WHITE)
+        curses.init_pair(Color.WHITE_ON_RED, curses.COLOR_WHITE, curses.COLOR_RED)
+        curses.init_pair(Color.WHITE_ON_BLUE, curses.COLOR_WHITE, curses.COLOR_BLUE)
+        curses.init_pair(Color.WHITE_ON_MAGENTA, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
+
+
+    def _base_window(self, stdscr: curses.window, header: str, footer: str) -> Tuple[int, int]:
+        height, width = stdscr.getmaxyx()
+        stdscr.clear()
+        stdscr.box()
+        stdscr.addstr(0, 2, f" {header} ", curses.color_pair(self.color_theme.window_title))
+        stdscr.addstr(height - 1, 2, f" {footer} ", curses.color_pair(self.color_theme.window_title))
+        return height, width
