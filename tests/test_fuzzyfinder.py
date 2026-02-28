@@ -95,24 +95,24 @@ def test_kb_toggle_selection():
     fzf.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
     assert fzf.selected == []
     fzf.kb_toggle_selection()
-    assert fzf.selected == [("item1", sr)]
+    assert fzf.selected == ["item1"]
     fzf.kb_toggle_selection()
     assert fzf.selected == []
     fzf.kb_move_items_cursor_relative(1)
     fzf.kb_toggle_selection()
-    assert fzf.selected == [("item2", sr)]
+    assert fzf.selected == ["item2"]
     fzf.kb_move_items_cursor_relative(1)
     fzf.kb_toggle_selection()
-    assert fzf.selected == [("item2", sr), ("item3", sr)]
+    assert fzf.selected == ["item2", "item3"]
     fzf.kb_move_items_cursor_relative(-1)
     fzf.kb_toggle_selection()
-    assert fzf.selected == [("item3", sr)]
+    assert fzf.selected == ["item3"]
     fzf.kb_move_items_cursor_relative(-1)
     fzf.kb_toggle_selection()
-    assert fzf.selected == [("item3", sr), ("item1", sr)]
+    assert fzf.selected == ["item3", "item1"]
     fzf.kb_move_items_cursor_absolute(99)
     fzf.kb_toggle_selection()
-    assert fzf.selected == [("item1", sr)]
+    assert fzf.selected == ["item1"]
     fzf.kb_move_items_cursor_absolute(0)
     fzf.kb_toggle_selection()
     assert fzf.selected == []
@@ -123,27 +123,27 @@ def test_kb_select_all():
     fzf.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
     assert fzf.selected == []
     fzf.kb_select_all()
-    assert fzf.selected == [("item1", sr), ("item2", sr), ("item3", sr)]
+    assert fzf.selected == ["item1", "item2", "item3"]
     fzf.kb_move_items_cursor_relative(1)
     fzf.kb_select_all()
-    assert fzf.selected == [("item1", sr), ("item2", sr), ("item3", sr)]
-    fzf.selected = [("item4", sr), ("item5", sr)]
+    assert fzf.selected == ["item1", "item2", "item3"]
+    fzf.selected = ["item4", "item5"]
     fzf.kb_select_all()
-    assert fzf.selected == [("item4", sr), ("item5", sr), ("item1", sr), ("item2", sr), ("item3", sr)]
+    assert fzf.selected == ["item4", "item5", "item1", "item2", "item3"]
 
 def test_kb_deselect_all():
     sr = ScoringResult("", "")
     fzf = FuzzyFinder(multi=True)
     fzf.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
-    fzf.selected = [("item1", sr), ("item2", sr), ("item3", sr)]
+    fzf.selected = ["item1", "item2", "item3"]
     fzf.kb_deselect_all()
     assert fzf.selected == []
     fzf.kb_move_items_cursor_relative(1)
     fzf.kb_deselect_all()
     assert fzf.selected == []
-    fzf.selected = [("item1", sr), ("item2", sr), ("item3", sr), ("item4", sr), ("item5", sr)]
+    fzf.selected = ["item1", "item2", "item3", "item4", "item5"]
     fzf.kb_deselect_all()
-    assert fzf.selected == [("item4", sr), ("item5", sr)]
+    assert fzf.selected == ["item4", "item5"]
 
 def test_kb_reset_query():
     sr = ScoringResult("", "")
@@ -440,11 +440,11 @@ def test_keymap():
     fzf._cursor_items = 1
     fzf.selected = []
     fzf.keymap[9]()
-    assert fzf.selected == [("item2", sr)]
+    assert fzf.selected == ["item2"]
     assert 1 in fzf.keymap  # Ctrl+A
     fzf.selected = []
     fzf.keymap[1]()
-    assert fzf.selected == [("item1", sr), ("item2", sr), ("item3", sr), ("item4", sr), ("item5", sr), ("item6", sr), ("item7", sr)]
+    assert fzf.selected == ["item1", "item2", "item3", "item4", "item5", "item6", "item7"]
     assert 21 in fzf.keymap  # Ctrl+U
     fzf.keymap[21]()
     assert fzf.selected == []
@@ -535,4 +535,4 @@ def test_calculate_preselection():
     fzf = FuzzyFinder(multi=True, preselect=lambda item, score: item == "item2")
     fzf.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
     fzf._calculate_preselection()
-    assert fzf.selected == [("item2", sr)]
+    assert fzf.selected == ["item2"]

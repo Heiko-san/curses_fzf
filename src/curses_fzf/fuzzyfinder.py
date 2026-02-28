@@ -244,7 +244,7 @@ class FuzzyFinder:
         """The list of items filtered by the current query, each paired with its scoring result."""
         self.all_items: List[Any] = []
         """The original list of all items given by the user."""
-        self.selected: List[Tuple[Any, ScoringResult]] = []
+        self.selected: List[Any] = []
         """The list of currently selected items."""
         # TODO function pointers
         self.display = display
@@ -390,7 +390,7 @@ class FuzzyFinder:
         Toggle the selection state of the current item (only in multi mode).
         """
         if self.multi and self.filtered:
-            item = self.filtered[self.cursor_items]
+            item = self.filtered[self.cursor_items][0]
             if item in self.selected:
                 self.selected.remove(item)
             else:
@@ -403,8 +403,9 @@ class FuzzyFinder:
         """
         if self.multi:
             for entry in self.filtered:
-                if entry not in self.selected:
-                    self.selected.append(entry)
+                item = entry[0]
+                if item not in self.selected:
+                    self.selected.append(item)
 
     def kb_deselect_all(self) -> None:
         """
@@ -413,8 +414,9 @@ class FuzzyFinder:
         """
         if self.multi:
             for entry in self.filtered:
-                if entry in self.selected:
-                    self.selected.remove(entry)
+                item = entry[0]
+                if item in self.selected:
+                    self.selected.remove(item)
 
     def kb_reset_query(self) -> None:
         """
@@ -534,7 +536,7 @@ class FuzzyFinder:
         Calculate the preselected items based on the current filter and
         preselection function.
         """
-        self.selected = [item_tuple for item_tuple in self.filtered
+        self.selected = [item_tuple[0] for item_tuple in self.filtered
                         if self.multi and self.preselect(*item_tuple)]
 
     def _handle_input(self, key: int) -> None:
