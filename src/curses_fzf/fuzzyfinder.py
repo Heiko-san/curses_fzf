@@ -216,30 +216,31 @@ class FuzzyFinder:
             color_theme: Optional[ColorTheme] = None,
         ) -> None:
         # TODO
-        self.multi = multi
-        self.page_size = page_size
         self.preview_window_percentage = preview_window_percentage
         self.autoreturn = autoreturn
         if color_theme is None:
             color_theme = ColorTheme()
         self.color_theme = color_theme
-        # TODO user settings
-        self.page_size = page_size
-        # TODO !!! query setter with cursor korrektur
-        self._query = query
-        """The query entered by the user or preseeded on initialization."""
+        # user settings
+        self.page_size: int = page_size
+        """Number of items to move when pressing page up/down."""
+        self.multi: bool = multi
+        """Whether to allow selection of multiple items or not."""
         # internal state
+        self.show_preview = True
+        """Show or hide the preview window."""
+        self._query: str = query
+        """Private: Use the query property to update the query."""
         self._cursor_items: int = 0
-        """The index of the cursor inside the filtered list of items."""
+        """Private: Use the cursor_items property to get the value."""
         self._cursor_query: int = len(query)
-        """The index of the cursor inside the filter query."""
+        """Private: Use the cursor_query property to get the value."""
         self.return_selection_now: bool = False
         """Whether the fuzzyfinder should end the main loop and return the selected items."""
         self.filtered: List[Tuple[Any, ScoringResult]] = []
         """The list of items filtered by the current query, each paired with its scoring result."""
         self.selected: List[Any] = []
         """The list of currently selected items."""
-        self.show_preview = True
         # TODO function pointers
         self.display = display
         self.preselect = preselect
@@ -277,26 +278,19 @@ class FuzzyFinder:
             # ENTER: accept selection
             10: self.kb_accept_selection,  # linefeed (classic enter key)
             13: self.kb_accept_selection,  # carriage return (classic enter key)
-            curses.KEY_ENTER: lambda: self.kb_accept_selection,  # 343
+            curses.KEY_ENTER: self.kb_accept_selection,  # 343
             # TAB: (de)select item (in multi mode)
             9: self.kb_toggle_selection,  # Tab - (de)select item (in multi mode)
             # Ctrl + A: select all from current filter (in multi mode)
             1: self.kb_select_all,
             # Ctrl + U: deselect all from current filter (in multi mode)
             21: self.kb_deselect_all,
+            # Ctrl + P: toggle preview window
+            16: self.kb_toggle_preview,
+            # F1: show help
+            curses.KEY_F1: self.kb_show_help,  # 265
+            # TODO else if chr(i).isprintable() -> kb_add_to_query_cursor chr(key)
         }
-
-    """
-        elif key == 16:  # Ctrl+P - toggle preview
-            show_preview = not show_preview
-        elif key in (265, curses.KEY_F1):  # F1 → Help
-            _help(stdscr, page_size, color_theme)
-
-        elif 32 <= key <= 126:  # add printable chars to query
--> else if chr(i).isprintable()
-            query += chr(key)
-            cursor = 0
-    """
 
 # keybinding functions
 
@@ -346,6 +340,13 @@ class FuzzyFinder:
         """
         self.return_selection_now = True
 
+    def kb_toggle_preview(self) -> None:
+        """
+        Keybinding function:
+        Toggle the visibility of the preview window.
+        """
+        self.show_preview = not self.show_preview
+
     def kb_toggle_selection(self) -> None:
         """
         Keybinding function:
@@ -385,8 +386,10 @@ class FuzzyFinder:
         Keybinding function:
         Clear the query string and return the cursor to index 0.
         """
-        self._query = ""
-        self._cursor_items = 0
+        if self.query:
+            self._query = ""
+            self._cursor_items = 0
+            self._cursor_query = 0
 
     def kb_add_to_query(self, text: str, index: int = -1) -> None:
         """
@@ -469,6 +472,14 @@ class FuzzyFinder:
         if out_of_bounds:
             return
         self.kb_remove_from_query(pos, 1)
+
+    def kb_show_help(self) -> None:
+        """
+        Keybinding function:
+        Show the help screen.
+        """
+        # TODO implement help screen
+        pass
 
 # properties
 

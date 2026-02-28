@@ -1,4 +1,5 @@
 import pytest
+import curses
 from curses_fzf import *
 
 def test_kb_move_items_cursor_absolute():
@@ -80,6 +81,14 @@ def test_kb_accept_selection():
     fzf.kb_accept_selection()
     assert fzf.return_selection_now == True
 
+def test_kb_toggle_preview():
+    fzf = FuzzyFinder()
+    assert fzf.show_preview == True
+    fzf.kb_toggle_preview()
+    assert fzf.show_preview == False
+    fzf.kb_toggle_preview()
+    assert fzf.show_preview == True
+
 def test_kb_toggle_selection():
     sr = ScoringResult("", "")
     fzf = FuzzyFinder(multi=True)
@@ -143,9 +152,15 @@ def test_kb_reset_query():
     assert fzf.query == "my initial query"
     fzf.kb_move_items_cursor_absolute(2)
     assert fzf.cursor_items == 2
+    assert fzf.cursor_query == 16
     fzf.kb_reset_query()
     assert fzf.query == ""
     assert fzf.cursor_items == 0
+    assert fzf.cursor_query == 0
+    fzf.kb_move_items_cursor_absolute(2)
+    assert fzf.cursor_items == 2
+    fzf.kb_reset_query()
+    assert fzf.cursor_items == 2
 
 def test_kb_add_to_query():
     sr = ScoringResult("", "")
@@ -360,6 +375,85 @@ def test_kb_remove_from_query_cursor():
     assert fzf.query == "y iital quer"
     assert fzf.cursor_items == 2
     assert fzf.cursor_query == 12
+
+def test_keymap():
+    sr = ScoringResult("", "")
+    fzf = FuzzyFinder(multi=True, query="my initial query", page_size=2)
+    fzf.filtered = [("item1", sr), ("item2", sr), ("item3", sr), ("item4", sr),
+                    ("item5", sr), ("item6", sr), ("item7", sr)]
+    assert isinstance(fzf.keymap, dict)
+    assert curses.KEY_UP in fzf.keymap  # Up arrow
+    fzf._cursor_items = 3
+    fzf.keymap[curses.KEY_UP]()
+    assert fzf.cursor_items == 2
+    assert curses.KEY_DOWN in fzf.keymap  # Down arrow
+    fzf._cursor_items = 3
+    fzf.keymap[curses.KEY_DOWN]()
+    assert fzf.cursor_items == 4
+    assert curses.KEY_PPAGE in fzf.keymap  # Page Up
+    fzf._cursor_items = 3
+    fzf.keymap[curses.KEY_PPAGE]()
+    assert fzf.cursor_items == 1
+    assert curses.KEY_NPAGE in fzf.keymap  # Page Down
+    fzf._cursor_items = 3
+    fzf.keymap[curses.KEY_NPAGE]()
+    assert fzf.cursor_items == 5
+    assert curses.KEY_HOME in fzf.keymap  # Home
+    fzf._cursor_items = 3
+    fzf.keymap[curses.KEY_HOME]()
+    assert fzf.cursor_items == 0
+    assert curses.KEY_END in fzf.keymap  # End
+    fzf._cursor_items = 3
+    fzf.keymap[curses.KEY_END]()
+    assert fzf.cursor_items == 6
+    assert curses.KEY_LEFT in fzf.keymap  # Left arrow
+    fzf._cursor_query = 5
+    fzf.keymap[curses.KEY_LEFT]()
+    assert fzf.cursor_query == 4
+    assert curses.KEY_RIGHT in fzf.keymap  # Right arrow
+    fzf._cursor_query = 5
+    fzf.keymap[curses.KEY_RIGHT]()
+    assert fzf.cursor_query == 6
+    assert curses.KEY_BACKSPACE in fzf.keymap  # Backspace
+    fzf._cursor_query = 5
+    fzf.keymap[curses.KEY_BACKSPACE]()
+    assert fzf.query == "my iitial query"
+    assert fzf.cursor_query == 4
+    assert curses.KEY_DC in fzf.keymap  # Delete
+    fzf._cursor_query = 5
+    fzf.keymap[curses.KEY_DC]()
+    assert fzf.query == "my iiial query"
+    assert fzf.cursor_query == 5
+    assert 24 in fzf.keymap  # Ctrl+X
+    fzf._cursor_query = 5
+    fzf.keymap[24]()
+    assert fzf.query == ""
+    assert fzf.cursor_query == 0
+    assert 27 in fzf.keymap  # Esc
+    with pytest.raises(CursesFzfAborted):
+        fzf.keymap[27]()
+    assert curses.KEY_ENTER in fzf.keymap  # Enter
+    assert fzf.return_selection_now == False
+    fzf.keymap[curses.KEY_ENTER]()
+    assert fzf.return_selection_now == True
+    assert 9 in fzf.keymap  # Tab
+    fzf._cursor_items = 1
+    fzf.selected = []
+    fzf.keymap[9]()
+    assert fzf.selected == ["item2"]
+    assert 1 in fzf.keymap  # Ctrl+A
+    fzf.selected = []
+    fzf.keymap[1]()
+    assert fzf.selected == ["item1", "item2", "item3", "item4", "item5", "item6", "item7"]
+    assert 21 in fzf.keymap  # Ctrl+U
+    fzf.keymap[21]()
+    assert fzf.selected == []
+    assert 16 in fzf.keymap  # Ctrl+P
+    assert fzf.show_preview == True
+    fzf.keymap[16]()
+    assert fzf.show_preview == False
+    assert curses.KEY_F1 in fzf.keymap  # F1
+    assert fzf.keymap[curses.KEY_F1] == fzf.kb_show_help
 
 def test_cursor_items():
     sr = ScoringResult("", "")
