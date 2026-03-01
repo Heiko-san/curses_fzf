@@ -46,6 +46,12 @@ Repository = "https://github.com/Heiko-san/curses_fzf.git"
 Issues = "https://github.com/Heiko-san/curses_fzf/issues"
 Changelog = "https://github.com/Heiko-san/curses_fzf/blob/main/CHANGELOG.md"
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=7",
+    "pytest-cov>=4",
+]
+
 # [project.scripts]
 # pyfzf = "curses_fzf.cli:main"
 
