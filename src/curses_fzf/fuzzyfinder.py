@@ -193,7 +193,9 @@ class FuzzyFinder:
         Keybinding function:
         Accept the current selection and return it.
         """
-        self.return_selection_now = True
+        # allow empty return in mutli mode but not in single mode
+        if self.multi or self.filtered:
+            self.return_selection_now = True
 
     def kb_toggle_preview(self) -> None:
         """

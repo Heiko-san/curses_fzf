@@ -14,7 +14,8 @@ def main() -> None:
         print("Fuzzy finder aborted by user.")
         return
     # in single selection mode, the result is a list with one element
-    # (otherwise CursesFzfAborted would have been raised if the user aborted with Esc or Ctrl-C)
+    # (otherwise CursesFzfAborted would have been raised
+    # if the user aborted with Esc or Ctrl-C)
     print(result[0])
 
 
