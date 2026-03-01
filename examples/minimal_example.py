@@ -20,6 +20,7 @@ def main() -> None:
 
 
 DATA = [
+    "Der Ölprinz ist ein Roman von Karl May, der 1897 veröffentlicht wurde.",
     "The quick brown fox jumps over the lazy dog and lands elegantly on the meadow.",
     "In a small town on the edge of the forest lived an old man who told stories.",
     "Modern technology fundamentally changes our daily lives and brings new challenges.",

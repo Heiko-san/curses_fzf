@@ -1,5 +1,5 @@
 import curses
-from typing import Any, Callable, List, Tuple, Optional
+from typing import Any, Callable, List, Tuple, Optional, Union
 
 from .colors import ColorTheme, _init_curses
 from .help import _help, _base_window
@@ -8,6 +8,7 @@ from .scoring import ScoringResult, scoring_full_words
 
 
 ITEM_COL_START = 2
+UnicodeKey = Union[int, str]
 
 class FuzzyFinder:
     """
@@ -360,17 +361,19 @@ class FuzzyFinder:
             self.selected = [item_tuple[0] for item_tuple in self.filtered
                             if self.preselect(*item_tuple)]
 
-    def _handle_input(self, key: int) -> None:
+    def _handle_input(self, key: UnicodeKey) -> None:
         """
         Handle the given key input by calling the corresponding keybinding function
         or adding the character to the query if it is a printable character.
         """
-        kb_function = self.keymap.get(key)
-        char = chr(key)
+        int_key = key if isinstance(key, int) else ord(key)
+        kb_function = self.keymap.get(int_key)
+        #char = chr(key)
         if kb_function:
             kb_function()
-        elif char.isprintable():
-            self.kb_add_to_query_cursor(char)
+        elif isinstance(key, str):
+            if key.isprintable():
+                self.kb_add_to_query_cursor(key)
 
     def _get_return_value(self) -> List[Any]:
         """
@@ -504,6 +507,6 @@ class FuzzyFinder:
                 sub_win.refresh()
 
             # read input
-            self._handle_input(self.stdscr.getch())
+            self._handle_input(self.stdscr.get_wch())
             if self.return_selection_now:
                 return self._get_return_value()

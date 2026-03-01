@@ -477,14 +477,14 @@ def test_handle_input():
     assert fzf.query == "abc"
     fzf._handle_input(curses.KEY_DOWN)
     assert fzf.cursor_items == 1
-    fzf._handle_input(ord('x'))
+    fzf._handle_input('x')
     assert fzf.query == "abcx"
     assert fzf.cursor_query == 4
     assert fzf.cursor_items == 0
     fzf._handle_input(curses.KEY_LEFT)
     assert fzf.cursor_query == 3
-    fzf._handle_input(ord('y'))
-    assert fzf.query == "abcyx"
+    fzf._handle_input('ö')
+    assert fzf.query == "abcöx"
     assert fzf.cursor_query == 4
     assert fzf.cursor_items == 0
     fzf._handle_input(curses.KEY_BACKSPACE)
