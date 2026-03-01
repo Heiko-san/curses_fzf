@@ -76,10 +76,23 @@ def test_kb_abort_selection():
         fzf.kb_abort_selection()
 
 def test_kb_accept_selection():
-    fzf = FuzzyFinder()
-    assert fzf.return_selection_now == False
-    fzf.kb_accept_selection()
-    assert fzf.return_selection_now == True
+    sr = ScoringResult("", "")
+    fzf_single = FuzzyFinder()
+    assert fzf_single.return_selection_now == False
+    # don't allow accept in single mode if no item in filtered list
+    fzf_single.filtered = []
+    fzf_single.kb_accept_selection()
+    assert fzf_single.return_selection_now == False
+    # accept selection
+    fzf_single.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
+    fzf_single.kb_accept_selection()
+    assert fzf_single.return_selection_now == True
+    fzf_multi = FuzzyFinder(multi=True)
+    assert fzf_multi.return_selection_now == False
+    # allow accept in multi mode even if no item in filtered list
+    fzf_multi.filtered = []
+    fzf_multi.kb_accept_selection()
+    assert fzf_multi.return_selection_now == True
 
 def test_kb_toggle_preview():
     fzf = FuzzyFinder()
