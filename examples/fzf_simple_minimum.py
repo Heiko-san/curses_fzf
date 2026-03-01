@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from curses_fzf import fuzzyfinder, CursesFzfAborted
+from curses_fzf import FuzzyFinder, CursesFzfAborted
 
 
 def main() -> None:
@@ -7,8 +7,9 @@ def main() -> None:
     Minimal example:
     Fuzzy find from a list of primitive types, allow only a single selection.
     """
+    fzf = FuzzyFinder()
     try:
-        result = fuzzyfinder(DATA)
+        result = fzf.find(DATA)
     except CursesFzfAborted:
         print("Fuzzy finder aborted by user.")
         return

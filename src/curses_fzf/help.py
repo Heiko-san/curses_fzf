@@ -5,14 +5,15 @@ from typing import Tuple
 from .colors import ColorTheme
 
 
-def _base_window(stdscr: curses.window, header: str, footer: str, color_theme: ColorTheme) -> Tuple[int, int]:
+def _base_window(stdscr: curses.window, title: str, footer: str, color_theme: ColorTheme) -> Tuple[int, int]:
     """
     Draw a basic window with frame, header and footer line.
     """
     stdscr.clear()
     height, width = stdscr.getmaxyx()
     curses.textpad.rectangle(stdscr, 1,0, height-2, width-1)
-    stdscr.addstr(0, 2, header[:width-4], curses.color_pair(color_theme.query))
+    #stdscr.addstr(0, 2, header[:width-4], curses.color_pair(color_theme.query))
+    stdscr.addstr(1, 2, " " + title + " ", curses.color_pair(color_theme.window_title))
     stdscr.addstr(height-1, 2, footer[:width-4], curses.color_pair(color_theme.footer))
     return height, width
 
@@ -48,8 +49,7 @@ def _help(stdscr: curses.window, page_size: int, color_theme: ColorTheme) -> Non
         )),
     )
     while True:
-        height, width = _base_window(stdscr, "", "F1 = close help", color_theme)
-        stdscr.addstr(1, 2, " HELP ", curses.color_pair(color_theme.window_title))
+        height, width = _base_window(stdscr, "HELP", "F1 = close help", color_theme)
         line = 2
         section_start = 5
         col1_start = section_start + 2

@@ -402,6 +402,33 @@ class FuzzyFinder:
                 return [self.filtered[0][0]]
         return None
 
+    def _render_query(self, width: int) -> None:
+        """
+        Render the query line based on the current query and query cursor.
+        """
+        if self.stdscr is None: return
+        # render query prompt
+        self.stdscr.addstr(0, 2, f"> ", curses.color_pair(self.color_theme.query))
+        max_index = -1
+        # render query characters with highlight on cursor position
+        for i, c in enumerate(self.query[:width-6]):
+            color = self.color_theme.query
+            if self.cursor_query == i:
+                color = self.color_theme.cursor
+            self.stdscr.addstr(0, 4 + i, c, curses.color_pair(color))
+            max_index = i
+        # if the cursor is at the end of the query render a cursor symbol there
+        if self.cursor_query == len(self.query) and self.cursor_query < width - 6:
+            self.stdscr.addstr(0, 5 + max_index, " ", curses.color_pair(self.color_theme.cursor))
+
+    def _render_no_match(self) -> None:
+        """
+        Render the "no match" message if there are no items matching the query.
+        """
+        if self.stdscr is None: return
+        if not self.filtered:
+            self.stdscr.addstr(3, ITEM_COL_START + 2, "No matching items!", curses.color_pair(self.color_theme.no_match))
+
     def _main_loop(self, stdscr: curses.window) -> List[Any]:
         self.stdscr = stdscr
         self._calculate_filtered()
@@ -413,14 +440,15 @@ class FuzzyFinder:
             self._calculate_filtered()
             height, width = _base_window(
                 self.stdscr,
-                f"> {self.query}",
-                (f"{len(self.selected)} selected | {len(self.filtered)} matches | ↑↓ = navigate | "
-                f"{'TAB = toggle | ' if self.multi else ''}ENTER = accept | ESC = abort | F1 = help"),
+                "ITEMS",
+                (
+                    f"{len(self.selected)} selected | {len(self.filtered)} matches | ↑↓ = navigate | "
+                    f"{'TAB = toggle | ' if self.multi else ''}ENTER = accept | ESC = abort | F1 = help"
+                ),
                 self.color_theme,
             )
-            self.stdscr.addstr(1, 2, " ITEMS ", curses.color_pair(self.color_theme.window_title))
-            if not self.filtered:
-                self.stdscr.addstr(3, ITEM_COL_START + 2, "No matching items!", curses.color_pair(self.color_theme.no_match))
+            self._render_query(width)
+            self._render_no_match()
 
             # dynamic window content (item list)
             viewport_height = height - 6  # header, footer, 2 frame lines and an empty line on top & bottom
