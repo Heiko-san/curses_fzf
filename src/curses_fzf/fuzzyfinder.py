@@ -77,9 +77,8 @@ class FuzzyFinder:
             curses.KEY_LEFT: lambda: self.kb_move_query_cursor_relative(-1),  # 260
             # ARROW-RIGHT: move cursor right 1 position in query
             curses.KEY_RIGHT: lambda: self.kb_move_query_cursor_relative(1),  # 261
-            # Ctrl + X: clear the query
-            # TODO use Ctrl + K ? -> clear line in shell
-            24: self.kb_reset_query,
+            # Ctrl + K: clear the query
+            11: self.kb_reset_query,
             # BACKSPACE: remove the character before the cursor from the query
             8: self.kb_remove_from_query_cursor,  # ASCII backspace
             127: self.kb_remove_from_query_cursor,  # ASCII del
@@ -96,8 +95,8 @@ class FuzzyFinder:
             9: self.kb_toggle_selection,  # Tab - (de)select item (in multi mode)
             # Ctrl + A: select all from current filter (in multi mode)
             1: self.kb_select_all,
-            # Ctrl + U: deselect all from current filter (in multi mode)
-            21: self.kb_deselect_all,
+            # Ctrl + X: deselect all from current filter (in multi mode)
+            24: self.kb_deselect_all,
             # Ctrl + P: toggle preview window
             16: self.kb_toggle_preview,
             # F1: show help

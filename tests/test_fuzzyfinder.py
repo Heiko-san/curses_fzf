@@ -424,9 +424,9 @@ def test_keymap():
     fzf.keymap[curses.KEY_DC]()
     assert fzf.query == "my iiial query"
     assert fzf.cursor_query == 5
-    assert 24 in fzf.keymap  # Ctrl+X
+    assert 11 in fzf.keymap  # Ctrl+K
     fzf._cursor_query = 5
-    fzf.keymap[24]()
+    fzf.keymap[11]()
     assert fzf.query == ""
     assert fzf.cursor_query == 0
     assert 27 in fzf.keymap  # Esc
@@ -445,8 +445,8 @@ def test_keymap():
     fzf.selected = []
     fzf.keymap[1]()
     assert fzf.selected == ["item1", "item2", "item3", "item4", "item5", "item6", "item7"]
-    assert 21 in fzf.keymap  # Ctrl+U
-    fzf.keymap[21]()
+    assert 24 in fzf.keymap  # Ctrl+X
+    fzf.keymap[24]()
     assert fzf.selected == []
     assert 16 in fzf.keymap  # Ctrl+P
     assert fzf.show_preview == True
