@@ -1,57 +1,49 @@
 #!/usr/bin/env python3
 import curses
-from typing import Any
-from curses_fzf import fuzzyfinder, Color, ScoringResult, ColorTheme, CursesFzfAborted
+import random
+from curses_fzf import FuzzyFinder, CursesFzfAborted
 
-def curses_preview(preview_window: curses.window, color_theme: ColorTheme, item: Any, result: ScoringResult) -> str:
-    """
-    A preview function using the preview_window to have more control over what is displayed and how.
-    Return an empty string to indicate the fuzzyfinder should not try to fill the preview_window.
-    """
-    height, width = preview_window.getmaxyx()
-    # If you plan to resize your terminal or your strings can get longer than the terminal's width,
-    # you should limit your output to avoid crashes.
-    # If you use the string-return preview, fuzzyfinder takes care of this.
-    if height > 3:
-        preview_window.addstr(2, 4, "score:", curses.color_pair(color_theme.text))
-        preview_window.addstr(2, 11, str(result.score), curses.color_pair(Color.WHITE_ON_RED))
-    x = 4
-    y = 4
-    for i, c in enumerate(result.candidate):
-        color = color_theme.text
-        for match in result.matches:
-            if match[0] <= i < match[0] + match[1]:
-                color = Color.WHITE_ON_MAGENTA
-        if height > y + 1:
-            preview_window.addstr(y, x, c, curses.color_pair(color))
-            x += 1
-            if x > width - 5:
-                x = 4
-                y += 1
-    return ""
 
+def select_random_item_with_for(fzf: FuzzyFinder) -> None:
+    """
+    Set query to "for" and select a random item from the filtered list.
+    """
+    fzf.query = "for"
+    fzf._calculate_filtered()
+    fzf.kb_move_items_cursor_absolute(random.randrange(len(fzf.filtered)))
+
+def deselect_really_all(self: FuzzyFinder) -> None:
+    """
+    Deselect all items, even those that are not currently visible.
+    """
+    self.selected = []
 
 def main() -> None:
+    """
+    Example: custom keybindings and external functions
+    """
+    # override a built-in function (before instantiation)
+    FuzzyFinder.kb_deselect_all = deselect_really_all
+
+    fzf = FuzzyFinder(multi=True)
+    # add some custom keybindings for parameterized actions
+    fzf.keymap[curses.KEY_F2] = lambda: fzf.kb_move_items_cursor_relative(-2)
+    fzf.keymap[curses.KEY_F3] = lambda: fzf.kb_move_items_cursor_relative(2)
+    # add custom keybinding for simple action (without parameters)
+    fzf.keymap[curses.KEY_F4] = fzf.kb_accept_selection
+    # add custom keybinding for a user defined external function
+    fzf.keymap[curses.KEY_F5] = lambda: select_random_item_with_for(fzf)
     try:
-        result = fuzzyfinder(
-            # fuzzyfind data allowing selection of multiple items
-            DATA, multi=False,
-            # display preview by using the curses window parameter
-            preview=curses_preview,
-            # grant preview window more width
-            preview_window_percentage=50,
-            # this query preseed shows how the order bonus can make a difference (see first 2 matches)
-            query="wo in",
-        )
+        result = fzf.find(DATA)
     except CursesFzfAborted:
         print("Fuzzy finder aborted by user.")
         return
-    # in single selection mode, the result is a list with one element
-    # (otherwise CursesFzfAborted would have been raised if the user aborted with Esc or Ctrl-C)
-    print(result[0])
+    for item in result:
+        print(item)
 
 
 DATA = [
+    "Der Ölprinz ist ein Roman von Karl May, der 1897 veröffentlicht wurde.",
     "The quick brown fox jumps over the lazy dog and lands elegantly on the meadow.",
     "In a small town on the edge of the forest lived an old man who told stories.",
     "Modern technology fundamentally changes our daily lives and brings new challenges.",

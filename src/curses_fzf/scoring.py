@@ -99,6 +99,7 @@ class ScoringResult():
         Length is the number of characters that are matched.
         The given score is added to self.score.
         """
+        # TODO maybe add the matched string itself too, to allow for match ordering etc)
         self.score += score
         self.matches.append((position, length))
 

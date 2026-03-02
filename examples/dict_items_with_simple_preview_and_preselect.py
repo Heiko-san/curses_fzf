@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import curses
 from typing import Any
-from curses_fzf import fuzzyfinder, ScoringResult, ColorTheme, CursesFzfAborted
+from curses_fzf import FuzzyFinder, ScoringResult, ColorTheme, CursesFzfAborted
 import yaml
 
 
@@ -13,17 +13,21 @@ def yaml_preview(preview_window: curses.window, color_theme: ColorTheme, item: A
 
 
 def main() -> None:
+    """
+    Example: dict items with simple preview and preselect
+    """
+    fzf = FuzzyFinder(
+        # fuzzyfind data allowing selection of multiple items
+        multi=True,
+        # display dict items by "name" key
+        display=lambda item: item.get("name"),
+        # preselect every item with less than 400 calories
+        preselect=lambda item, result: item.get("calories", 0) < 400,
+        # display preview as yaml representation of our items
+        preview=yaml_preview,
+    )
     try:
-        result = fuzzyfinder(
-            # fuzzyfind data allowing selection of multiple items
-            DATA, multi=True,
-            # display dict items by "name" key
-            display=lambda item: item.get("name"),
-            # preselect every item with less than 400 calories
-            preselect=lambda item, result: item.get("calories", 0) < 400,
-            # display preview as yaml representation of our items
-            preview=yaml_preview,
-        )
+        result = fzf.find(DATA)
     except CursesFzfAborted:
         print("Fuzzy finder aborted by user.")
         return

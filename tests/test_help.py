@@ -14,7 +14,7 @@ def test_base_window_renders_correctly():
 
         result = _base_window(
             mock_stdscr,
-            "My Header is very long and should be truncated",
+            "MY TITLE",
             "My Footer is also very long and should be truncated",
             ColorTheme()
         )
@@ -23,7 +23,7 @@ def test_base_window_renders_correctly():
         mock_stdscr.getmaxyx.assert_called_once()
         mock_textpad.rectangle.assert_called_once_with(mock_stdscr, 1, 0, 15-2, 25-1)
         mock_stdscr.addstr.assert_has_calls([
-            call( 0, 2, "My Header is very lon", 33),
+            call( 1, 2, " MY TITLE ", 33),
             call(14, 2, "My Footer is also ver", 33),
         ], any_order=True)
 
@@ -44,8 +44,7 @@ def test_help():
         mock_stdscr.getmaxyx.assert_called_once()
         mock_textpad.rectangle.assert_called_once_with(mock_stdscr, 1, 0, 21-2, 40-1)
         mock_stdscr.addstr.assert_has_calls([
-            call( 0, 2, "", 33),
-            call(20, 2, "F1 = close help", 33),
             call(1, 2, " HELP ", 33),
+            call(20, 2, "F1 = close help", 33),
             call(5, 7, "text characters", 37),
         ], any_order=True)

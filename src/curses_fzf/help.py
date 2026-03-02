@@ -5,14 +5,15 @@ from typing import Tuple
 from .colors import ColorTheme
 
 
-def _base_window(stdscr: curses.window, header: str, footer: str, color_theme: ColorTheme) -> Tuple[int, int]:
+def _base_window(stdscr: curses.window, title: str, footer: str, color_theme: ColorTheme) -> Tuple[int, int]:
     """
     Draw a basic window with frame, header and footer line.
     """
     stdscr.clear()
     height, width = stdscr.getmaxyx()
     curses.textpad.rectangle(stdscr, 1,0, height-2, width-1)
-    stdscr.addstr(0, 2, header[:width-4], curses.color_pair(color_theme.query))
+    #stdscr.addstr(0, 2, header[:width-4], curses.color_pair(color_theme.query))
+    stdscr.addstr(1, 2, " " + title[:width-6] + " ", curses.color_pair(color_theme.window_title))
     stdscr.addstr(height-1, 2, footer[:width-4], curses.color_pair(color_theme.footer))
     return height, width
 
@@ -24,8 +25,11 @@ def _help(stdscr: curses.window, page_size: int, color_theme: ColorTheme) -> Non
     help = (
         ("Fuzzy Finder Query", (
             ("text characters", "Enter a fuzzy finder query."),
-            ("BACKSPACE", "Remove last character from query."),
-            ("CTRL + X", "Clear entire query.")
+            ("BACKSPACE", "Remove one character before the cursor."),
+            ("DELETE", "Remove one character at the cursor."),
+            ("CTRL + K", "Clear entire query."),
+            ("ARROW-LEFT", "Move cursor left 1 position in query."),
+            ("ARROW-RIGHT", "Move cursor right 1 position in query."),
         )),
         ("List Movement", (
             ("ARROW-UP", "Move up 1 entry."),
@@ -35,21 +39,20 @@ def _help(stdscr: curses.window, page_size: int, color_theme: ColorTheme) -> Non
             ("HOME", "Move to first item."),
             ("END", "Move to last item."),
         )),
-        ("Item Selection", (
-            ("TAB", "Toggle selection of the current item (multi-select)."),
-            ("CTRL + A", "Select all items matching current filter query (multi-select)."),
-            ("CTRL + U", "Deselect all items matching current filter query (multi-select)."),
+        ("Item Selection (multi-select only)", (
+            ("TAB", "Toggle selection of the current item."),
+            ("CTRL + A", "Select all items matching current filter query."),
+            ("CTRL + X", "Deselect all items matching current filter query."),
         )),
         ("Control Commands", (
             ("ENTER", "Accept the current item(s)."),
-            ("ESC", "Abort fuzzy finder returning an empty list."),
+            ("ESC", "Abort fuzzy raising CursesFzfAborted exception."),
             ("CTRL + P", "Toggle preview window (if a preview function is provided)."),
             ("F1", "Toggle this help screen."),
         )),
     )
     while True:
-        height, width = _base_window(stdscr, "", "F1 = close help", color_theme)
-        stdscr.addstr(1, 2, " HELP ", curses.color_pair(color_theme.window_title))
+        height, width = _base_window(stdscr, "HELP", "F1 = close help", color_theme)
         line = 2
         section_start = 5
         col1_start = section_start + 2

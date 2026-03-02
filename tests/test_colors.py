@@ -39,9 +39,9 @@ def test_init_curses():
             patch("curses.use_default_colors") as mock_use_default_colors, \
             patch("curses.init_pair") as mock_init_pair:
         _init_curses()
-        assert mock_curs_set.called_with(0)
-        assert mock_start_color.called_once()
-        assert mock_use_default_colors.called_once()
+        mock_curs_set.assert_called_with(0)
+        mock_start_color.assert_called_once()
+        mock_use_default_colors.assert_called_once()
         assert mock_init_pair.call_count == 18
         mock_init_pair.assert_any_call(Color.BLACK, curses.COLOR_BLACK, -1)
         mock_init_pair.assert_any_call(Color.RED, curses.COLOR_RED, -1)

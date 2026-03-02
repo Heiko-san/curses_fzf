@@ -1,23 +1,30 @@
 #!/usr/bin/env python3
-from curses_fzf import fuzzyfinder, CursesFzfAborted
+from curses_fzf import FuzzyFinder, CursesFzfAborted
 
 
 def main() -> None:
     """
-    Minimal example:
-    Fuzzy find from a list of primitive types, allow only a single selection.
+    Example: reusing fuzzy finder instance and autoreturn
     """
+    fzf = FuzzyFinder(title="Select an item from the list", query="fox", autoreturn=1)
     try:
-        result = fuzzyfinder(DATA)
+        # this one auto-returns since there is only one item with "fox" in it
+        result = fzf.find(DATA)
+        print(result[0])
+        # do it again, reusing the same fuzzy finder instance with the same
+        # configuration and title, but use another preseed query
+        result = fzf.find(DATA, query="pi")
+        print(result[0])
+        # same preseed query as before, but another prompt for the user
+        result = fzf.find(DATA, title="Select a last one...")
+        print(result[0])
     except CursesFzfAborted:
         print("Fuzzy finder aborted by user.")
         return
-    # in single selection mode, the result is a list with one element
-    # (otherwise CursesFzfAborted would have been raised if the user aborted with Esc or Ctrl-C)
-    print(result[0])
 
 
 DATA = [
+    "Der Ölprinz ist ein Roman von Karl May, der 1897 veröffentlicht wurde.",
     "The quick brown fox jumps over the lazy dog and lands elegantly on the meadow.",
     "In a small town on the edge of the forest lived an old man who told stories.",
     "Modern technology fundamentally changes our daily lives and brings new challenges.",
