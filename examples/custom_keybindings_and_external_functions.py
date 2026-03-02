@@ -12,12 +12,20 @@ def select_random_item_with_for(fzf: FuzzyFinder) -> None:
     fzf._calculate_filtered()
     fzf.kb_move_items_cursor_absolute(random.randrange(len(fzf.filtered)))
 
+def deselect_really_all(self: FuzzyFinder) -> None:
+    """
+    Deselect all items, even those that are not currently visible.
+    """
+    self.selected = []
 
 def main() -> None:
     """
     Example: custom keybindings and external functions
     """
-    fzf = FuzzyFinder()
+    # override a built-in function (before instantiation)
+    FuzzyFinder.kb_deselect_all = deselect_really_all
+
+    fzf = FuzzyFinder(multi=True)
     # add some custom keybindings for parameterized actions
     fzf.keymap[curses.KEY_F2] = lambda: fzf.kb_move_items_cursor_relative(-2)
     fzf.keymap[curses.KEY_F3] = lambda: fzf.kb_move_items_cursor_relative(2)
@@ -30,7 +38,8 @@ def main() -> None:
     except CursesFzfAborted:
         print("Fuzzy finder aborted by user.")
         return
-    print(result[0])
+    for item in result:
+        print(item)
 
 
 DATA = [

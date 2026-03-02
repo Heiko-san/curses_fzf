@@ -23,16 +23,16 @@ class FuzzyFinder:
 
     def __init__(self,
             multi: bool = False,
+            title: str = "ITEMS",
             query: str = "",
             display: Callable[[Any], str] = lambda item: str(item),
             preselect: Callable[[Any, ScoringResult], bool] = lambda item, result: False,
             preview: Optional[Callable[[curses.window, ColorTheme, Any, ScoringResult], str]] = None,
             score: Callable[[str, str], ScoringResult] = scoring_full_words,
+            color_theme: Optional[ColorTheme] = None,
+            autoreturn: int = 0,
             page_size: int = 10,
             preview_window_percentage: int = 40,
-            autoreturn: int = 0,
-            color_theme: Optional[ColorTheme] = None,
-            title: str = "ITEMS",
         ) -> None:
         # user settings
         self.title: str = title
