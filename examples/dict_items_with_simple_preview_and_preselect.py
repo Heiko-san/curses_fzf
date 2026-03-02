@@ -13,6 +13,9 @@ def yaml_preview(preview_window: curses.window, color_theme: ColorTheme, item: A
 
 
 def main() -> None:
+    """
+    Example: dict items with simple preview and preselect
+    """
     fzf = FuzzyFinder(
         # fuzzyfind data allowing selection of multiple items
         multi=True,

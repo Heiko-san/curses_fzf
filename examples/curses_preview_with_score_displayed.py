@@ -33,6 +33,9 @@ def curses_preview(preview_window: curses.window, color_theme: ColorTheme, item:
 
 
 def main() -> None:
+    """
+    Example: curses preview with score displayed
+    """
     fzf = FuzzyFinder(
         # fuzzyfind data allowing selection of multiple items
         multi=False,

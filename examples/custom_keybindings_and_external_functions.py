@@ -1,26 +1,36 @@
 #!/usr/bin/env python3
+import curses
+import random
 from curses_fzf import FuzzyFinder, CursesFzfAborted
+
+
+def select_random_item_with_for(fzf: FuzzyFinder) -> None:
+    """
+    Set query to "for" and select a random item from the filtered list.
+    """
+    fzf.query = "for"
+    fzf._calculate_filtered()
+    fzf.kb_move_items_cursor_absolute(random.randrange(len(fzf.filtered)))
 
 
 def main() -> None:
     """
-    Example: reusing fuzzy finder instance and autoreturn
+    Example: custom keybindings and external functions
     """
-    fzf = FuzzyFinder(title="Select an item from the list", query="fox", autoreturn=1)
+    fzf = FuzzyFinder()
+    # add some custom keybindings for parameterized actions
+    fzf.keymap[curses.KEY_F2] = lambda: fzf.kb_move_items_cursor_relative(-2)
+    fzf.keymap[curses.KEY_F3] = lambda: fzf.kb_move_items_cursor_relative(2)
+    # add custom keybinding for simple action (without parameters)
+    fzf.keymap[curses.KEY_F4] = fzf.kb_accept_selection
+    # add custom keybinding for a user defined external function
+    fzf.keymap[curses.KEY_F5] = lambda: select_random_item_with_for(fzf)
     try:
-        # this one auto-returns since there is only one item with "fox" in it
         result = fzf.find(DATA)
-        print(result[0])
-        # do it again, reusing the same fuzzy finder instance with the same
-        # configuration and title, but use another preseed query
-        result = fzf.find(DATA, query="pi")
-        print(result[0])
-        # same preseed query as before, but another prompt for the user
-        result = fzf.find(DATA, title="Select a last one...")
-        print(result[0])
     except CursesFzfAborted:
         print("Fuzzy finder aborted by user.")
         return
+    print(result[0])
 
 
 DATA = [

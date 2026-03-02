@@ -2,6 +2,7 @@ import pytest
 import curses
 from unittest.mock import MagicMock, patch, call
 from curses_fzf import *
+import curses_fzf
 
 def test_kb_move_items_cursor_absolute():
     sr = ScoringResult("", "")
@@ -755,3 +756,28 @@ def test_render_preview():
         # should have been truncated
         assert call(4, 4, "foo", 37) not in mock_sub_win.addstr.call_args_list
         assert call(5, 4, "bar", 37) not in mock_sub_win.addstr.call_args_list
+
+def test_find():
+    fzf = FuzzyFinder(title="my initial title", query="my initial query")
+    assert fzf.all_items == []
+    assert fzf.title == "my initial title"
+    assert fzf.query == "my initial query"
+    itemlist = ["item1", "item2", "item3"]
+    # test using object parameters
+    with patch('curses.wrapper') as mock_wrapper:
+        fzf.find(itemlist)
+        mock_wrapper.assert_called_once()
+        assert fzf.all_items == itemlist
+        assert fzf.title == "my initial title"
+        assert fzf.query == "my initial query"
+    # test with local override parameters
+    with patch('curses.wrapper') as mock_wrapper:
+        fzf.find(itemlist, title="new title", query="new query")
+        mock_wrapper.assert_called_once()
+        assert fzf.all_items == itemlist
+        assert fzf.title == "new title"
+        assert fzf.query == "new query"
+    # test Ctrl + C (KeyboardInterrupt) handling
+    with patch.object(curses, "wrapper", side_effect=KeyboardInterrupt):
+        with pytest.raises(CursesFzfAborted):
+            fzf.find(itemlist)
