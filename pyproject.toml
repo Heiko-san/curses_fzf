@@ -40,11 +40,12 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Heiko-san/curses_fzf"
-Documentation = "https://github.com/Heiko-san/curses_fzf/blob/main/README.md"
-Repository = "https://github.com/Heiko-san/curses_fzf.git"
-Issues = "https://github.com/Heiko-san/curses_fzf/issues"
 Changelog = "https://github.com/Heiko-san/curses_fzf/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/Heiko-san/curses_fzf/blob/main/README.md"
+Examples = "https://github.com/Heiko-san/curses_fzf/tree/main/examples"
+Homepage = "https://github.com/Heiko-san/curses_fzf"
+Issues = "https://github.com/Heiko-san/curses_fzf/issues"
+Repository = "https://github.com/Heiko-san/curses_fzf.git"
 
 [project.optional-dependencies]
 dev = [

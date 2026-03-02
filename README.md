@@ -1,5 +1,7 @@
 # curses_fzf
 
+[![codecov](https://codecov.io/github/Heiko-san/curses_fzf/graph/badge.svg?token=8JFSFIFJ3K)](https://codecov.io/github/Heiko-san/curses_fzf)
+
 A pure Python implementation of fzf (fuzzyfinder) using the curses library -
 no external `fzf` binary required.
 
