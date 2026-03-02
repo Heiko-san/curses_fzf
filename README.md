@@ -65,7 +65,7 @@ The `query` can also be pre-seeded with a given string.
 The user is still able to fully modify the query, including completely clearing it.
 The parameter can be given to `FuzzyFinder` constructor or the object's `find` method.
 
-![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple.png)
+![](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple.png)
 
 ## Title Prompting The User
 
@@ -125,7 +125,7 @@ This function is expected to return `True` if the item should be selected.
 
 The default implementation always returns `False`.
 
-![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/multi_with_preview.png)
+![](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/multi_with_preview.png)
 
 ## Preview Function
 
@@ -169,7 +169,7 @@ The default value is `40` percent of the terminal window.
 Don't worry that the preview window might hide portions of your items,
 you can toggle the preview window any time using `Ctrl + P`.
 
-![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple_with_preview.png)
+![](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple_with_preview.png)
 
 ## Scoring Function
 
@@ -262,7 +262,7 @@ skipped by the keys `PAGE_UP` and `PAGE_DOWN`.
 
 Press `F1` to display a help screen with a list of keyboard actions.
 
-![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.2.0/help.png)
+![](https://github.com/Heiko-san/curses_fzf/releases/download/0.2.0/help.png)
 
 ## Exceptions
 
