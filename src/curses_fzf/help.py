@@ -13,7 +13,7 @@ def _base_window(stdscr: curses.window, title: str, footer: str, color_theme: Co
     height, width = stdscr.getmaxyx()
     curses.textpad.rectangle(stdscr, 1,0, height-2, width-1)
     #stdscr.addstr(0, 2, header[:width-4], curses.color_pair(color_theme.query))
-    stdscr.addstr(1, 2, " " + title + " ", curses.color_pair(color_theme.window_title))
+    stdscr.addstr(1, 2, " " + title[:width-6] + " ", curses.color_pair(color_theme.window_title))
     stdscr.addstr(height-1, 2, footer[:width-4], curses.color_pair(color_theme.footer))
     return height, width
 
@@ -23,6 +23,7 @@ def _help(stdscr: curses.window, page_size: int, color_theme: ColorTheme) -> Non
     Print a help screen.
     """
     help = (
+        # TODO new help
         ("Fuzzy Finder Query", (
             ("text characters", "Enter a fuzzy finder query."),
             ("BACKSPACE", "Remove last character from query."),

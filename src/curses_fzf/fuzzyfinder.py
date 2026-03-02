@@ -1,5 +1,4 @@
 import curses
-from re import sub
 from typing import Any, Callable, List, Tuple, Optional, Union
 
 from .colors import ColorTheme, _init_curses
@@ -16,7 +15,11 @@ UnicodeKey = Union[int, str]
 
 class FuzzyFinder:
     """
+    FuzzyFinder is a class that implements a fuzzy finding interface using the curses library.
+    It allows the user to filter a list of items based on a query and select one
+    or more items from the filtered list.
     """
+
     def __init__(self,
             multi: bool = False,
             query: str = "",
@@ -28,42 +31,56 @@ class FuzzyFinder:
             preview_window_percentage: int = 40,
             autoreturn: int = 0,
             color_theme: Optional[ColorTheme] = None,
+            title: str = "ITEMS",
         ) -> None:
-        # TODO
-        self.preview_window_percentage = preview_window_percentage
-        self.autoreturn = autoreturn
-        if color_theme is None:
-            color_theme = ColorTheme()
-        self.color_theme = color_theme
         # user settings
+        self.title: str = title
+        """The title to display in the header of the interface."""
+        self.autoreturn: int = autoreturn
+        """
+        If not 0 return directly if in single mode only 1 item is provided or left after initial filter.
+        In multi mode the number of items need to match the number given as autoreturn's value.
+        """
+        self.preview_window_percentage: int = preview_window_percentage
+        """The percentage of the total width that the preview window should take."""
         self.page_size: int = page_size
         """Number of items to move when pressing page up/down."""
         self.multi: bool = multi
         """Whether to allow selection of multiple items or not."""
+        if color_theme is None:
+            color_theme = ColorTheme()
+        self.color_theme: ColorTheme = color_theme
+        """The color theme to use for the interface, if None the default color theme will be used."""
+        # function pointers
+        self.display: Callable[[Any], str] = display
+        """Function to convert an item to a string for display and matching purposes."""
+        self.preselect: Callable[[Any, ScoringResult], bool] = preselect
+        """Function to determine if an item should be preselected."""
+        self.preview: Optional[Callable[[curses.window, ColorTheme, Any, ScoringResult], str]] = preview
+        """Function to generate a preview for the given item."""
+        self.score: Callable[[str, str], ScoringResult] = score
+        """Function to score an item based on the query."""
         # internal state
         self.stdscr: Optional[curses.window] = None
         """The main curses window, will be set in main_loop."""
-        self.show_preview = True
-        """Show or hide the preview window."""
+        self.all_items: List[Any] = []
+        """The original list of all items given by the user."""
+        self._preseed_query: str = query
+        """A saved copy of the initial query given on initialization, used to reset the query."""
         self._query: str = query
         """Private: Use the query property to update the query."""
+        self.show_preview: bool = True
+        """Show or hide the preview window."""
         self._cursor_items: int = 0
         """Private: Use the cursor_items property to get the value."""
-        self._cursor_query: int = len(query)
+        self._cursor_query: int = len(self._query)
         """Private: Use the cursor_query property to get the value."""
         self.return_selection_now: bool = False
         """Whether the fuzzyfinder should end the main loop and return the selected items."""
         self.filtered: List[Tuple[Any, ScoringResult]] = []
         """The list of items filtered by the current query, each paired with its scoring result."""
-        self.all_items: List[Any] = []
-        """The original list of all items given by the user."""
         self.selected: List[Any] = []
         """The list of currently selected items."""
-        # TODO function pointers
-        self.display = display
-        self.preselect = preselect
-        self.preview = preview
-        self.score = score
         # keymap
         self.keymap = {
             # ARROW-UP: move cursor up 1 position in filter list
@@ -106,8 +123,8 @@ class FuzzyFinder:
             16: self.kb_toggle_preview,
             # F1: show help
             curses.KEY_F1: self.kb_show_help,  # 265
-            # TODO else if chr(i).isprintable() -> kb_add_to_query_cursor chr(key)
         }
+        """Dictionary mapping keys to their corresponding keybinding functions."""
 
 # properties
 
@@ -141,12 +158,32 @@ class FuzzyFinder:
             self._cursor_query = len(value)
             self._query = value
 
-    def find(self, items: List[Any]) -> List[Any]:
+# main entry point
+
+    def find(self,
+            items: List[Any],
+            title: Optional[str] = None,
+            query: Optional[str] = None,
+        ) -> List[Any]:
         """
         Run the fuzzyfinder on the given list of items and return the selected
         item(s).
         """
         self.all_items = items
+        if title is not None:
+            self.title = title
+        if query is None:
+            self._query = self._preseed_query
+        else:
+            self._query = query
+        self._preseed_query = self._query
+        # reset internal state
+        self._cursor_items = 0
+        self._cursor_query = len(self._query)
+        self.show_preview = True
+        self.return_selection_now = False
+        self.filtered = []
+        self.selected = []
         try:
             return curses.wrapper(lambda stdscr: self._main_loop(stdscr))
         except KeyboardInterrupt:
@@ -517,7 +554,6 @@ class FuzzyFinder:
                         i += 1
         return sub_win
 
-
     def _main_loop(self, stdscr: curses.window) -> List[Any]:
         self.stdscr = stdscr
         self._calculate_filtered()
@@ -530,7 +566,7 @@ class FuzzyFinder:
             # prepare window content
             height, width = _base_window(
                 self.stdscr,
-                "ITEMS",
+                self.title,
                 (
                     f"{len(self.selected)} selected | "
                     f"{len(self.filtered)} matches | ↑↓ = navigate | "
