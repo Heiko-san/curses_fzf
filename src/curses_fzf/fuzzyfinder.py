@@ -13,6 +13,7 @@ DESELECTED_MARKER = "   "
 CHAR_CONTINUED = "…"
 UnicodeKey = Union[int, str]
 
+
 class FuzzyFinder:
     """
     FuzzyFinder is a class that implements a fuzzy finding interface using the curses library.

@@ -23,11 +23,13 @@ def _help(stdscr: curses.window, page_size: int, color_theme: ColorTheme) -> Non
     Print a help screen.
     """
     help = (
-        # TODO new help
         ("Fuzzy Finder Query", (
             ("text characters", "Enter a fuzzy finder query."),
-            ("BACKSPACE", "Remove last character from query."),
-            ("CTRL + X", "Clear entire query.")
+            ("BACKSPACE", "Remove one character before the cursor."),
+            ("DELETE", "Remove one character at the cursor."),
+            ("CTRL + K", "Clear entire query."),
+            ("ARROW-LEFT", "Move cursor left 1 position in query."),
+            ("ARROW-RIGHT", "Move cursor right 1 position in query."),
         )),
         ("List Movement", (
             ("ARROW-UP", "Move up 1 entry."),
@@ -37,14 +39,14 @@ def _help(stdscr: curses.window, page_size: int, color_theme: ColorTheme) -> Non
             ("HOME", "Move to first item."),
             ("END", "Move to last item."),
         )),
-        ("Item Selection", (
-            ("TAB", "Toggle selection of the current item (multi-select)."),
-            ("CTRL + A", "Select all items matching current filter query (multi-select)."),
-            ("CTRL + U", "Deselect all items matching current filter query (multi-select)."),
+        ("Item Selection (multi-select only)", (
+            ("TAB", "Toggle selection of the current item."),
+            ("CTRL + A", "Select all items matching current filter query."),
+            ("CTRL + X", "Deselect all items matching current filter query."),
         )),
         ("Control Commands", (
             ("ENTER", "Accept the current item(s)."),
-            ("ESC", "Abort fuzzy finder returning an empty list."),
+            ("ESC", "Abort fuzzy raising CursesFzfAborted exception."),
             ("CTRL + P", "Toggle preview window (if a preview function is provided)."),
             ("F1", "Toggle this help screen."),
         )),
