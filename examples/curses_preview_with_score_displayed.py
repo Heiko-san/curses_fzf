@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import curses
 from typing import Any
-from curses_fzf import fuzzyfinder, Color, ScoringResult, ColorTheme, CursesFzfAborted
+from curses_fzf import FuzzyFinder, Color, ScoringResult, ColorTheme, CursesFzfAborted
+
 
 def curses_preview(preview_window: curses.window, color_theme: ColorTheme, item: Any, result: ScoringResult) -> str:
     """
@@ -32,17 +33,18 @@ def curses_preview(preview_window: curses.window, color_theme: ColorTheme, item:
 
 
 def main() -> None:
+    fzf = FuzzyFinder(
+        # fuzzyfind data allowing selection of multiple items
+        multi=False,
+        # display preview by using the curses window parameter
+        preview=curses_preview,
+        # grant preview window more width
+        preview_window_percentage=50,
+        # this query preseed shows how the order bonus can make a difference (see first 2 matches)
+        query="wo in",
+    )
     try:
-        result = fuzzyfinder(
-            # fuzzyfind data allowing selection of multiple items
-            DATA, multi=False,
-            # display preview by using the curses window parameter
-            preview=curses_preview,
-            # grant preview window more width
-            preview_window_percentage=50,
-            # this query preseed shows how the order bonus can make a difference (see first 2 matches)
-            query="wo in",
-        )
+        result = fzf.find(DATA)
     except CursesFzfAborted:
         print("Fuzzy finder aborted by user.")
         return

@@ -8,6 +8,9 @@ from .scoring import ScoringResult, scoring_full_words
 
 
 ITEM_COL_START = 2
+SELECTED_MARKER =   "✅ "
+DESELECTED_MARKER = "   "
+CHAR_CONTINUED = "…"
 UnicodeKey = Union[int, str]
 
 class FuzzyFinder:
@@ -433,6 +436,48 @@ class FuzzyFinder:
         if not self.filtered:
             self.stdscr.addstr(3, ITEM_COL_START + 2, "No matching items!", curses.color_pair(self.color_theme.no_match))
 
+    def _render_viewport(self, height: int, width: int) -> None:
+        """
+        Render the current viewport of the filtered items based on the current
+        items cursor.
+        """
+        if self.stdscr is None: return
+        # query, footer, 2x lines and 1 empty line on top and bottom of list = 6
+        viewport_height = height - 6
+        viewport_start = max(0, self.cursor_items - viewport_height + 1)
+        viewport_end = min(viewport_start + viewport_height, len(self.filtered))
+        for i in range(viewport_start, viewport_end):
+            # header, frame & empty line = 3
+            row = i - viewport_start + 3
+            item, score_result = self.filtered[i]
+            display_item = self.display(item)
+            if len(display_item.splitlines()) > 1:
+                raise CursesFzfAssertion("display function must return single-line strings")
+            # chose marker and color based on selection and cursor position
+            marker = DESELECTED_MARKER
+            base_color = self.color_theme.text
+            if i == self.cursor_items and item in self.selected:
+                marker = SELECTED_MARKER
+                base_color = self.color_theme.cursor_selected
+            elif i == self.cursor_items:
+                base_color = self.color_theme.cursor
+            elif item in self.selected:
+                marker = SELECTED_MARKER
+                base_color = self.color_theme.selected
+            # render the marker before selected items
+            self.stdscr.addstr(row, ITEM_COL_START, marker, curses.color_pair(base_color))
+            # render the item character by character to highlight matched characters
+            for char_index, char in enumerate(display_item[:width-10]):
+                color = base_color
+                for match in score_result.matches:
+                    if match[0] <= char_index < match[0] + match[1]:
+                        color = self.color_theme.highlight
+                self.stdscr.addstr(row, ITEM_COL_START + 3 + char_index,
+                    char, curses.color_pair(color))
+            # if the line is too long end it with "…"
+            if len(display_item) > width - 10:
+                self.stdscr.addstr(row, width - 6, CHAR_CONTINUED, curses.color_pair(self.color_theme.text))
+
     def _main_loop(self, stdscr: curses.window) -> List[Any]:
         self.stdscr = stdscr
         self._calculate_filtered()
@@ -453,34 +498,7 @@ class FuzzyFinder:
             )
             self._render_query(width)
             self._render_no_match()
-
-            # dynamic window content (item list)
-            viewport_height = height - 6  # header, footer, 2 frame lines and an empty line on top & bottom
-            viewport_start = max(0, self.cursor_items - viewport_height + 2)
-            viewport_end = min(viewport_start + viewport_height, len(self.filtered))
-            for i in range(viewport_start, viewport_end):
-                row = i - viewport_start + 3 # header, frame line, empty line
-                item, score_result = self.filtered[i]
-                display_item = self.display(item)
-                if len(display_item.splitlines()) > 1:
-                    raise CursesFzfAssertion("display function must return single-line strings")
-                marker = "   "
-                base_color = self.color_theme.text
-                if i == self.cursor_items and item in self.selected:
-                    marker = "✅ "
-                    base_color = self.color_theme.cursor_selected
-                elif i == self.cursor_items:
-                    base_color = self.color_theme.cursor
-                elif item in self.selected:
-                    marker = "✅ "
-                    base_color = self.color_theme.selected
-                self.stdscr.addstr(row, ITEM_COL_START, marker, curses.color_pair(base_color))
-                for j, c in enumerate(display_item[:width-10]):
-                    color = base_color
-                    for match in score_result.matches:
-                        if match[0] <= j < match[0] + match[1]:
-                            color = self.color_theme.highlight
-                    self.stdscr.addstr(row, ITEM_COL_START + 3 + j, c, curses.color_pair(color))
+            self._render_viewport(height, width)
 
             # dynamic window content (item preview)
             if width < 30:

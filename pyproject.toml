@@ -50,6 +50,7 @@ Changelog = "https://github.com/Heiko-san/curses_fzf/blob/main/CHANGELOG.md"
 dev = [
     "pytest>=7",
     "pytest-cov>=4",
+    "pyyaml>=6",
 ]
 
 # [project.scripts]
