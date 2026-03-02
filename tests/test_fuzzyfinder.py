@@ -1,5 +1,6 @@
 import pytest
 import curses
+from unittest.mock import MagicMock, patch, call
 from curses_fzf import *
 
 def test_kb_move_items_cursor_absolute():
@@ -582,3 +583,175 @@ def test_autoreturn():
     assert fzf_single._autoreturn() == None
     fzf_single.filtered = [("item1", sr)]
     assert fzf_single._autoreturn() == ["item1"]
+
+def test_render_query():
+    # test short query with cursor at the end
+    mock_stdscr = MagicMock(spec=curses.window)
+    fzf = FuzzyFinder(query="myq")
+    fzf.stdscr = mock_stdscr
+    with patch('curses.color_pair') as mock_color_pair:
+        mock_color_pair.side_effect = lambda x: x   # return color pair ID directly
+        fzf._render_query(10)
+    mock_stdscr.addstr.assert_has_calls([
+        call(0, 4, 'm', 33),
+        call(0, 5, 'y', 33),
+        call(0, 6, 'q', 33),
+        call(0, 7, ' ', 47),
+    ], any_order=False)
+    # test too long query with cursor in the middle
+    mock_stdscr = MagicMock(spec=curses.window)
+    fzf = FuzzyFinder(query="myquery")
+    fzf.stdscr = mock_stdscr
+    fzf.kb_move_query_cursor_absolute(2)
+    with patch('curses.color_pair') as mock_color_pair:
+        mock_color_pair.side_effect = lambda x: x   # return color pair ID directly
+        fzf._render_query(10)
+    mock_stdscr.addstr.assert_has_calls([
+        call(0, 4, 'm', 33),
+        call(0, 5, 'y', 33),
+        call(0, 6, 'q', 47),
+        call(0, 7, 'u', 33),
+    ], any_order=False)
+
+def test_render_no_match():
+    # enough width for text
+    mock_stdscr = MagicMock(spec=curses.window)
+    fzf = FuzzyFinder()
+    fzf.stdscr = mock_stdscr
+    fzf.filtered = []
+    with patch('curses.color_pair') as mock_color_pair:
+        mock_color_pair.side_effect = lambda x: x   # return color pair ID directly
+        fzf._render_no_match(24)
+    mock_stdscr.addstr.assert_has_calls([
+        call(3, 4, 'No matching items!', 31),
+    ], any_order=False)
+    # not enough width for text
+    mock_stdscr = MagicMock(spec=curses.window)
+    fzf = FuzzyFinder()
+    fzf.stdscr = mock_stdscr
+    fzf.filtered = []
+    with patch('curses.color_pair') as mock_color_pair:
+        mock_color_pair.side_effect = lambda x: x   # return color pair ID directly
+        fzf._render_no_match(10)
+    mock_stdscr.addstr.assert_has_calls([
+        call(3, 4, 'No m', 31),
+    ], any_order=False)
+
+def test_render_viewport():
+    sr = ScoringResult("", "")
+    sr.add_match(1, 2, 5)
+    mock_stdscr = MagicMock(spec=curses.window)
+    fzf = FuzzyFinder()
+    fzf.stdscr = mock_stdscr
+    fzf.filtered = [("item1", sr), ("item2", sr)]
+    with patch('curses.color_pair') as mock_color_pair:
+        mock_color_pair.side_effect = lambda x: x   # return color pair ID directly
+        fzf._render_viewport(24, 24)
+    mock_stdscr.addstr.assert_has_calls([
+        call(3, 2, '   ', 47),
+        call(3, 5, 'i', 47),
+        call(3, 6, 't', 46),
+        call(3, 7, 'e', 46),
+        call(3, 8, 'm', 47),
+        call(3, 9, '1', 47),
+        call(4, 2, '   ', 37),
+        call(4, 5, 'i', 37),
+        call(4, 6, 't', 46),
+        call(4, 7, 'e', 46),
+        call(4, 8, 'm', 37),
+        call(4, 9, '2', 37)
+    ], any_order=False)
+    # too small window
+    mock_stdscr = MagicMock(spec=curses.window)
+    fzf = FuzzyFinder()
+    fzf.stdscr = mock_stdscr
+    fzf.filtered = [("item1", sr), ("item2", sr)]
+    with patch('curses.color_pair') as mock_color_pair:
+        mock_color_pair.side_effect = lambda x: x   # return color pair ID directly
+        fzf._render_viewport(7, 12)
+    mock_stdscr.addstr.assert_has_calls([
+        call(3, 2, '   ', 47),
+        call(3, 5, 'i', 47),
+        call(3, 6, 't', 46),
+        call(3, 6, '…', 47)
+    ], any_order=False)
+    # multi
+    mock_stdscr = MagicMock(spec=curses.window)
+    fzf = FuzzyFinder(multi=True)
+    fzf.stdscr = mock_stdscr
+    fzf.filtered = [("item1", sr), ("item2", sr)]
+    fzf.selected = ["item2", "item1"]
+    with patch('curses.color_pair') as mock_color_pair:
+        mock_color_pair.side_effect = lambda x: x   # return color pair ID directly
+        fzf._render_viewport(24, 24)
+    mock_stdscr.addstr.assert_has_calls([
+        call(3, 2, '✅ ', 42),
+        call(3, 5, 'i', 42),
+        call(3, 6, 't', 46),
+        call(3, 7, 'e', 46),
+        call(3, 8, 'm', 42),
+        call(3, 9, '1', 42),
+        call(4, 2, '✅ ', 32),
+        call(4, 5, 'i', 32),
+        call(4, 6, 't', 46),
+        call(4, 7, 'e', 46),
+        call(4, 8, 'm', 32),
+        call(4, 9, '2', 32)
+    ], any_order=False)
+    # exception
+    mock_stdscr = MagicMock(spec=curses.window)
+    fzf = FuzzyFinder(display=lambda x: f"{x}\nfoo")
+    fzf.stdscr = mock_stdscr
+    fzf.filtered = [("item1", sr), ("item2", sr)]
+    with patch('curses.color_pair') as mock_color_pair:
+        mock_color_pair.side_effect = lambda x: x   # return color pair ID directly
+        with pytest.raises(CursesFzfAssertion):
+            fzf._render_viewport(24, 24)
+
+def test_render_preview_noop():
+    fzf = FuzzyFinder(preview=lambda w, c, i, s: f"{i}\n{s.score}")
+    # stdscr not set
+    assert fzf._render_preview(20, 50) == None
+    # deactivate preview if window gets too small
+    mock_stdscr = MagicMock(spec=curses.window)
+    fzf.stdscr = mock_stdscr
+    fzf.show_preview = True
+    assert fzf._render_preview(6, 50) == None
+    assert fzf.show_preview == False
+    fzf.show_preview = True
+    assert fzf._render_preview(20, 29) == None
+    assert fzf.show_preview == False
+    # return if show_preview is False
+    assert fzf._render_preview(20, 50) == None
+    # terutn if no preview function is set
+    fzf = FuzzyFinder()
+    mock_stdscr = MagicMock(spec=curses.window)
+    fzf.stdscr = mock_stdscr
+    assert fzf._render_preview(20, 50) == None
+
+def test_render_preview():
+    sr = ScoringResult("", "")
+    fzf = FuzzyFinder(preview=lambda w, c, i, s: f"{i}\n{s.score}\nfoo\nbar")
+    fzf.filtered = [("item1", sr), ("item2", sr)]
+    mock_stdscr = MagicMock(spec=curses.window)
+    mock_sub_win = MagicMock(spec=curses.window)
+    mock_sub_win.getmaxyx.return_value = (6, 12)
+    fzf.stdscr = mock_stdscr
+    fzf.show_preview = True
+    with patch('curses.color_pair') as mock_color_pair, \
+        patch('curses.newwin') as mock_newwin:
+        mock_color_pair.side_effect = lambda x: x   # return color pair ID directly
+        mock_newwin.return_value = mock_sub_win
+        rwin = fzf._render_preview(10, 30)
+        assert rwin == mock_sub_win
+        mock_newwin.assert_called_with(6, 12, 2, 16)
+        mock_sub_win.box.assert_called_once()
+        mock_sub_win.getmaxyx.assert_called_once()
+        mock_sub_win.addstr.assert_has_calls([
+            call(0, 2, ' PREVIEW ',33),
+            call(2, 4, 'item1', 37),
+            call(3, 4, '0', 37),
+        ], any_order=False)
+        # should have been truncated
+        assert call(4, 4, "foo", 37) not in mock_sub_win.addstr.call_args_list
+        assert call(5, 4, "bar", 37) not in mock_sub_win.addstr.call_args_list

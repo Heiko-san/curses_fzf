@@ -1,4 +1,5 @@
 import curses
+from re import sub
 from typing import Any, Callable, List, Tuple, Optional, Union
 
 from .colors import ColorTheme, _init_curses
@@ -413,7 +414,7 @@ class FuzzyFinder:
         """
         Render the query line based on the current query and query cursor.
         """
-        if self.stdscr is None: return
+        if self.stdscr is None or width < 10: return
         # render query prompt
         self.stdscr.addstr(0, 2, f"> ", curses.color_pair(self.color_theme.query))
         max_index = -1
@@ -428,20 +429,22 @@ class FuzzyFinder:
         if self.cursor_query == len(self.query) and self.cursor_query < width - 6:
             self.stdscr.addstr(0, 5 + max_index, " ", curses.color_pair(self.color_theme.cursor))
 
-    def _render_no_match(self) -> None:
+    def _render_no_match(self, width: int) -> None:
         """
         Render the "no match" message if there are no items matching the query.
         """
-        if self.stdscr is None: return
+        if self.stdscr is None or width < 10: return
         if not self.filtered:
-            self.stdscr.addstr(3, ITEM_COL_START + 2, "No matching items!", curses.color_pair(self.color_theme.no_match))
+            self.stdscr.addstr(3, ITEM_COL_START + 2,
+                "No matching items!"[:width-6],
+                curses.color_pair(self.color_theme.no_match))
 
     def _render_viewport(self, height: int, width: int) -> None:
         """
         Render the current viewport of the filtered items based on the current
         items cursor.
         """
-        if self.stdscr is None: return
+        if self.stdscr is None or height < 7 or width < 10: return
         # query, footer, 2x lines and 1 empty line on top and bottom of list = 6
         viewport_height = height - 6
         viewport_start = max(0, self.cursor_items - viewport_height + 1)
@@ -476,7 +479,44 @@ class FuzzyFinder:
                     char, curses.color_pair(color))
             # if the line is too long end it with "…"
             if len(display_item) > width - 10:
-                self.stdscr.addstr(row, width - 6, CHAR_CONTINUED, curses.color_pair(self.color_theme.text))
+                self.stdscr.addstr(row, width - 6, CHAR_CONTINUED, curses.color_pair(base_color))
+
+    def _render_preview(self, height: int, width: int) -> Optional[curses.window]:
+        """
+        Render the preview window if it is enabled and a preview function is provided.
+        """
+        if self.stdscr is None: return None
+        # deactivate the preview window if the main window gets too small to display it properly
+        if height < 7 or width < 30:
+            self.show_preview = False
+        sub_win = None
+        if self.show_preview and self.preview is not None:
+            sub_win = curses.newwin(
+                height - 4,
+                int(width * self.preview_window_percentage / 100),
+                2,
+                int(width * (100 - self.preview_window_percentage) / 100) - 2
+            )
+            sub_win.box()
+            sub_win.addstr(0, 2, " PREVIEW ",
+                curses.color_pair(self.color_theme.window_title))
+            if self.filtered:
+                text = self.preview(sub_win, self.color_theme,
+                    self.filtered[self.cursor_items][0], self.filtered[self.cursor_items][1])
+                # if the preview function returns any text assume the user didn't
+                # use the preview_window parameter and render the text line by line
+                # inside the preview window, honoring the available space
+                if text:
+                    sub_h, sub_w = sub_win.getmaxyx()
+                    i = 2
+                    for line in text.splitlines():
+                        if i > sub_h - 3:
+                            break
+                        sub_win.addstr(i, 4, line[:sub_w - 6],
+                            curses.color_pair(self.color_theme.text))
+                        i += 1
+        return sub_win
+
 
     def _main_loop(self, stdscr: curses.window) -> List[Any]:
         self.stdscr = stdscr
@@ -487,43 +527,26 @@ class FuzzyFinder:
         _init_curses()
         while True:
             self._calculate_filtered()
+            # prepare window content
             height, width = _base_window(
                 self.stdscr,
                 "ITEMS",
                 (
-                    f"{len(self.selected)} selected | {len(self.filtered)} matches | ↑↓ = navigate | "
-                    f"{'TAB = toggle | ' if self.multi else ''}ENTER = accept | ESC = abort | F1 = help"
+                    f"{len(self.selected)} selected | "
+                    f"{len(self.filtered)} matches | ↑↓ = navigate | "
+                    f"{'TAB = toggle | ' if self.multi else ''}"
+                    "ENTER = accept | ESC = abort | F1 = help"
                 ),
                 self.color_theme,
             )
             self._render_query(width)
-            self._render_no_match()
+            self._render_no_match(width)
             self._render_viewport(height, width)
-
-            # dynamic window content (item preview)
-            if width < 30:
-                self.show_preview = False
-            sub_win = None
-            if self.show_preview and self.preview is not None:
-                sub_win = curses.newwin(height - 4, int(width * self.preview_window_percentage / 100), 2, int(width * (100 - self.preview_window_percentage) / 100) - 2)
-                sub_win.box()
-                sub_win.addstr(0, 2, " PREVIEW ", curses.color_pair(self.color_theme.window_title))
-                if self.filtered:
-                    text = self.preview(sub_win, self.color_theme, self.filtered[self.cursor_items][0], self.filtered[self.cursor_items][1])
-                    if text:
-                        sub_h, sub_w = sub_win.getmaxyx()
-                        i = 2
-                        for line in text.splitlines():
-                            if i > sub_h - 3:
-                                break
-                            sub_win.addstr(i, 4, line[:sub_w - 6], curses.color_pair(self.color_theme.text))
-                            i += 1
-
+            sub_win = self._render_preview(height, width)
             # render windows to screen
             self.stdscr.refresh()
             if sub_win is not None:
                 sub_win.refresh()
-
             # read input
             self._handle_input(self.stdscr.get_wch())
             if self.return_selection_now:
