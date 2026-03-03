@@ -262,7 +262,7 @@ skipped by the keys `PAGE_UP` and `PAGE_DOWN`.
 
 ## Help
 
-Press `F1` to display a help screen with a list of keyboard actions.
+Press `F1` to display a help screen with the list of default keyboard actions.
 
 ![](https://github.com/Heiko-san/curses_fzf/releases/download/0.2.0/help.png)
 

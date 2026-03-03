@@ -1,17 +1,21 @@
 import pytest
 from curses_fzf import ScoringResult, scoring_full_words
 
+
 @pytest.fixture
 def fox():
     return ScoringResult("fox bro", "The quick brown fox jumps over the lazy dog and lands elegantly on the meadow.")
+
 
 @pytest.fixture
 def banana():
     return ScoringResult("app", "BaNaNa")
 
+
 @pytest.fixture
 def henry():
     return ScoringResult("me", "Henry is at home and watches a snowman melt slowly.")
+
 
 def test_scoringresult_init(fox, banana):
     assert fox.query == "fox bro"
@@ -24,9 +28,10 @@ def test_scoringresult_init(fox, banana):
     assert banana.candidate_lower == "banana"
     assert fox.query_words_with_index == [('fox', 0), ('bro', 4)]
     assert banana.query_words_with_index == [("app", 0)]
-    assert fox.candidate_words_with_index == [('the', 0), ('quick', 4), ('brown', 10),
-        ('fox', 16), ('jumps', 20), ('over', 26), ('the', 31), ('lazy', 35), ('dog', 40),
-        ('and', 44), ('lands', 48), ('elegantly', 54), ('on', 64), ('the', 67), ('meadow.', 71)]
+    assert fox.candidate_words_with_index == [('the', 0), ('quick', 4), ('brown', 10), ('fox', 16), ('jumps', 20),
+                                              ('over', 26), ('the', 31), ('lazy', 35), ('dog', 40), ('and', 44),
+                                              ('lands', 48), ('elegantly', 54), ('on', 64), ('the', 67),
+                                              ('meadow.', 71)]
     assert banana.candidate_words_with_index == [('banana', 0)]
     assert fox.score == 0
     assert banana.score == 0
@@ -34,6 +39,7 @@ def test_scoringresult_init(fox, banana):
     assert banana.matches == []
     assert fox._already_matched_words == set()
     assert banana._already_matched_words == set()
+
 
 def test_scoringresult_int(fox, banana):
     assert int(fox) == 0
@@ -43,43 +49,47 @@ def test_scoringresult_int(fox, banana):
     assert int(fox) == 42
     assert int(banana) == 7
 
+
 def test_scoringresult_lt(fox, banana):
     fox.score = 10
     banana.score = 20
     assert (fox < banana) == (fox.score < banana.score)
     assert (banana < fox) == (banana.score < fox.score)
-    assert (fox < banana) == True
-    assert (banana < fox) == False
-    assert (fox < 42) == True
-    assert (banana < 15) == False
+    assert (fox < banana) == True  # noqa: E712
+    assert (banana < fox) == False  # noqa: E712
+    assert (fox < 42) == True  # noqa: E712
+    assert (banana < 15) == False  # noqa: E712
     with pytest.raises(TypeError):
         fox < "foo"
+
 
 def test_scoringresult_gt(fox, banana):
     fox.score = 10
     banana.score = 20
     assert (fox > banana) == (fox.score > banana.score)
     assert (banana > fox) == (banana.score > fox.score)
-    assert (fox > banana) == False
-    assert (banana > fox) == True
-    assert (fox > 42) == False
-    assert (banana > 15) == True
+    assert (fox > banana) == False  # noqa: E712
+    assert (banana > fox) == True  # noqa: E712
+    assert (fox > 42) == False  # noqa: E712
+    assert (banana > 15) == True  # noqa: E712
     with pytest.raises(TypeError):
         fox > "foo"
+
 
 def test_scoringresult_eq(fox, banana):
     fox.score = 10
     banana.score = 10
     assert (fox == banana) == (fox.score == banana.score)
     assert (banana == fox) == (banana.score == fox.score)
-    assert (fox == banana) == True
-    assert (banana == fox) == True
-    assert (fox == 42) == False
-    assert (banana == 10) == True
+    assert (fox == banana) == True  # noqa: E712
+    assert (banana == fox) == True  # noqa: E712
+    assert (fox == 42) == False  # noqa: E712
+    assert (banana == 10) == True  # noqa: E712
     banana.score = 20
-    assert (fox == banana) == False
-    assert (banana == fox) == False
-    assert (fox == "foo") == False
+    assert (fox == banana) == False  # noqa: E712
+    assert (banana == fox) == False  # noqa: E712
+    assert (fox == "foo") == False  # noqa: E712
+
 
 def test_scoringresult_add_match(fox, banana):
     fox.add_match(16, 3, 10)
@@ -95,19 +105,22 @@ def test_scoringresult_add_match(fox, banana):
     assert banana.score == 17
     assert banana.matches == [(0, 6), (55, 2)]
 
+
 def test_scoringresult_find_best_word_match(fox, henry):
     assert fox.find_best_word_match("bro") == ('brown', 10, 0, 60)
     # since "brown" already matched for "bro"
-    assert fox.find_best_word_match("own") == None
+    assert fox.find_best_word_match("own") is None
     assert fox.find_best_word_match("fox") == ('fox', 16, 0, 100)
     assert fox.find_best_word_match("tly") == ('elegantly', 54, 6, 33)
-    assert fox.find_best_word_match("cat") == None
+    assert fox.find_best_word_match("cat") is None
     # melt > home because the match is closer to the beginning of the word
     assert henry.find_best_word_match("me") == ('melt', 39, 0, 50)
 
+
 def test_scoring_full_words(henry, fox, banana):
     result = scoring_full_words(henry.query, henry.candidate)
-    # 50 (% matched word "melt") * 1.5 (matched word is the beginning of the candidate word) * 1.2 (matched words are in the original order) = 90
+    # 50 (% matched word "melt") * 1.5 (matched word is the beginning of the candidate word)
+    # * 1.2 (matched words are in the original order) = 90
     assert result.score == 90
     assert result.matches == [(39, henry.query)]
     assert result._already_matched_words == {39}

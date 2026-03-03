@@ -103,7 +103,6 @@ class ScoringResult():
         Match is the matched substring.
         The given score is added to self.score.
         """
-        # TODO maybe add the matched string itself too, to allow match ordering
         self.score += score
         self.matches.append((position, match))
 

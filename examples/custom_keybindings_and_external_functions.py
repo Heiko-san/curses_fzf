@@ -12,11 +12,13 @@ def select_random_item_with_for(fzf: FuzzyFinder) -> None:
     fzf._calculate_filtered()
     fzf.kb_move_items_cursor_absolute(random.randrange(len(fzf.filtered)))
 
+
 def deselect_really_all(self: FuzzyFinder) -> None:
     """
     Deselect all items, even those that are not currently visible.
     """
     self.selected = []
+
 
 def main() -> None:
     """

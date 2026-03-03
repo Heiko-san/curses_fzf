@@ -4,13 +4,17 @@ from curses_fzf.colors import _init_curses
 from unittest.mock import patch
 import curses
 
+
 @pytest.fixture
 def default():
     return ColorTheme()
 
+
 @pytest.fixture
 def custom():
-    return ColorTheme(text=Color.RED, window_title=Color.GREEN, no_match=Color.BLUE, query=Color.MAGENTA, footer=Color.CYAN, selected=Color.YELLOW, cursor=Color.BLACK_ON_RED, cursor_selected=Color.WHITE_ON_BLUE, highlight=Color.WHITE_ON_MAGENTA)
+    return ColorTheme(text=Color.RED, window_title=Color.GREEN, no_match=Color.BLUE, query=Color.MAGENTA,
+                      footer=Color.CYAN, selected=Color.YELLOW, cursor=Color.BLACK_ON_RED,
+                      cursor_selected=Color.WHITE_ON_BLUE, highlight=Color.WHITE_ON_MAGENTA)
 
 
 def test_scoringresult_init(default, custom):
@@ -32,6 +36,7 @@ def test_scoringresult_init(default, custom):
     assert custom.cursor == Color.BLACK_ON_RED
     assert custom.cursor_selected == Color.WHITE_ON_BLUE
     assert custom.highlight == Color.WHITE_ON_MAGENTA
+
 
 def test_init_curses():
     with patch("curses.curs_set") as mock_curs_set, \
