@@ -160,7 +160,8 @@ to avoid crashes, e.g. on terminal resizing.
 See `ColorTheme` section for information on coloring, the selected `color_theme`
 is also provided to the `preview` function.
 
-See `examples` folder for more detailed code snippets.
+See [`examples`](https://github.com/Heiko-san/curses_fzf/blob/main/examples/curses_preview_with_score_displayed.py)
+folder for more detailed code snippets.
 
 Not only the `item` is provided, but also the `ScoringResult`.
 This allows to display scoring related information.
@@ -200,6 +201,9 @@ The `candidate` is the `display` string of the item in question.
 
 The function is supposed to return a `ScoringResult`.
 
+See [`examples`](https://github.com/Heiko-san/curses_fzf/blob/fuzzy_scoring/examples/custom_scoring_and_color_theme.py)
+folder for more detailed code snippets.
+
 ### ScoringResult
 
 The only important thing about the `ScoringResult` is its `score` field.
@@ -235,7 +239,7 @@ choices = fzf.find(data)
 Use the indexes defined via `Color` enum.
 If you want to register your own `color_pairs`, the indexes 1 to 29 are safe to use.
 
-## Autoreturn
+## [Autoreturn](https://github.com/Heiko-san/curses_fzf/blob/fuzzy_scoring/examples/reusing_fuzzyfinder_and_autoreturn.py)
 
 ```py
 from curses_fzf import FuzzyFinder
@@ -264,7 +268,7 @@ skipped by the keys `PAGE_UP` and `PAGE_DOWN`.
 
 Press `F1` to display a help screen with the list of default keyboard actions.
 
-![Image: help screen](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/help.png)
+[![Image: help screen](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/help.png)](https://github.com/Heiko-san/curses_fzf/blob/fuzzy_scoring/examples/reusing_fuzzyfinder_and_autoreturn.py)
 
 ## Exceptions
 
@@ -294,5 +298,5 @@ choices = fzf.find(data)
 
 `FuzzyFinder` is designed to allow for deep customization.
 
-See `examples` folder for more detailed code snippets, e.g. on how to define
-your own keyboard actions.
+See [`examples`](https://github.com/Heiko-san/curses_fzf/blob/fuzzy_scoring/examples/custom_keybindings_and_external_functions.py)
+folder for more detailed code snippets, e.g. on how to define your own keyboard actions.
