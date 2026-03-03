@@ -259,7 +259,7 @@ If `multi=True` the number given as `autoreturn`'s value is checked against the 
 If `multi=False` the number given as `autoreturn`'s value is not relevant,
 the match will be returned, if there is only one.
 
-## [Page Size](https://github.com/Heiko-san/curses_fzf/blob/fuzzy_scoring/examples/dict_items_with_simple_preview_and_preselect.py)
+## [Page Size](https://github.com/Heiko-san/curses_fzf/blob/main/examples/dict_items_with_simple_preview_and_preselect.py)
 
 The `page_size` parameter (default `10`) defines the number of entries that are
 skipped by the keys `PAGE_UP` and `PAGE_DOWN`.
