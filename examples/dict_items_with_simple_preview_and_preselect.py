@@ -25,6 +25,8 @@ def main() -> None:
         preselect=lambda item, result: item.get("calories", 0) < 400,
         # display preview as yaml representation of our items
         preview=yaml_preview,
+        # reduce page size since we only have a short list
+        page_size=5
     )
     try:
         result = fzf.find(DATA)

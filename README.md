@@ -21,7 +21,7 @@ To all of the above questions this module is the answer.
 
 # Features
 
-## Multi Select Mode
+## [Multi Select Mode](https://github.com/Heiko-san/curses_fzf/blob/main/examples/dict_items_with_simple_preview_and_preselect.py)
 
 ```py
 from curses_fzf import FuzzyFinder, CursesFzfAborted
@@ -48,7 +48,7 @@ multi-selection mode.
 If selection is aborted a `CursesFzfAborted` exception is raised, so single
 selection mode can't return an empty list.
 
-## Query Pre-Seeding
+## [Query Pre-Seeding](https://github.com/Heiko-san/curses_fzf/blob/main/examples/reusing_fuzzyfinder_and_autoreturn.py)
 
 ```py
 from curses_fzf import FuzzyFinder
@@ -69,7 +69,7 @@ The parameter can be given to `FuzzyFinder` constructor or the object's `find` m
 
 [![Image: simple elements with search query](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/simple.png)](https://github.com/Heiko-san/curses_fzf/blob/main/examples/minimal_example.py)
 
-## Title Prompting The User
+## [Title Prompting The User](https://github.com/Heiko-san/curses_fzf/blob/main/examples/reusing_fuzzyfinder_and_autoreturn.py)
 
 ```py
 from curses_fzf import FuzzyFinder
@@ -81,7 +81,7 @@ choices = fzf.find(data)
 Instead of "ITEMS", you can provide a custom header for the `FuzzyFinder` window.
 The parameter can be given to `FuzzyFinder` constructor or the object's `find` method.
 
-## Display Function
+## [Display Function](https://github.com/Heiko-san/curses_fzf/blob/main/examples/dict_items_with_simple_preview_and_preselect.py)
 
 ```py
 from curses_fzf import FuzzyFinder
@@ -109,7 +109,7 @@ The default behavior is to stringify the item provided:
 FuzzyFinder(display=lambda item: str(item))
 ```
 
-## Preselect Function
+## [Preselect Function](https://github.com/Heiko-san/curses_fzf/blob/main/examples/dict_items_with_simple_preview_and_preselect.py)
 
 ```py
 from curses_fzf import FuzzyFinder, ScoringResult
@@ -129,7 +129,7 @@ The default implementation always returns `False`.
 
 [![Image: multi select dicts with simple preview](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/multi_preview.png)](https://github.com/Heiko-san/curses_fzf/blob/main/examples/dict_items_with_simple_preview_and_preselect.py)
 
-## Preview Function
+## [Preview Function](https://github.com/Heiko-san/curses_fzf/blob/main/examples/curses_preview_with_score_displayed.py)
 
 ```py
 import curses
@@ -160,7 +160,7 @@ to avoid crashes, e.g. on terminal resizing.
 See `ColorTheme` section for information on coloring, the selected `color_theme`
 is also provided to the `preview` function.
 
-See [`examples`](https://github.com/Heiko-san/curses_fzf/blob/main/examples/curses_preview_with_score_displayed.py)
+See [`examples`](https://github.com/Heiko-san/curses_fzf/blob/main/examples/dict_items_with_simple_preview_and_preselect.py)
 folder for more detailed code snippets.
 
 Not only the `item` is provided, but also the `ScoringResult`.
@@ -174,7 +174,7 @@ you can toggle the preview window any time using `Ctrl + P`.
 
 [![Image: curses preview with scoring information](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/curses_preview.png)](https://github.com/Heiko-san/curses_fzf/blob/main/examples/curses_preview_with_score_displayed.py)
 
-## Scoring Function
+## [Scoring Function](https://github.com/Heiko-san/curses_fzf/blob/main/examples/custom_scoring_and_color_theme.py)
 
 ```py
 from curses_fzf import FuzzyFinder, ScoringResult
@@ -201,10 +201,10 @@ The `candidate` is the `display` string of the item in question.
 
 The function is supposed to return a `ScoringResult`.
 
-See [`examples`](https://github.com/Heiko-san/curses_fzf/blob/fuzzy_scoring/examples/custom_scoring_and_color_theme.py)
+See [`examples`](https://github.com/Heiko-san/curses_fzf/blob/main/examples/custom_scoring_and_color_theme.py)
 folder for more detailed code snippets.
 
-### ScoringResult
+### [ScoringResult](https://github.com/Heiko-san/curses_fzf/blob/main/src/curses_fzf/scoring.py)
 
 The only important thing about the `ScoringResult` is its `score` field.
 Although there are helper functions, you are free to modify this field directly
@@ -226,7 +226,7 @@ and `match` identifies, it is added to the `score` field of this `ScoringResult`
 providing the fields `query`, `query_lower`, `query_words_with_index`, `candidate`,
 `candidate_lower` and `candidate_words_with_index`.
 
-## ColorTheme Customization
+## [ColorTheme Customization](https://github.com/Heiko-san/curses_fzf/blob/main/examples/custom_scoring_and_color_theme.py)
 
 ```py
 from curses_fzf import FuzzyFinder, ColorTheme, Color
@@ -239,7 +239,7 @@ choices = fzf.find(data)
 Use the indexes defined via `Color` enum.
 If you want to register your own `color_pairs`, the indexes 1 to 29 are safe to use.
 
-## [Autoreturn](https://github.com/Heiko-san/curses_fzf/blob/fuzzy_scoring/examples/reusing_fuzzyfinder_and_autoreturn.py)
+## [Autoreturn](https://github.com/Heiko-san/curses_fzf/blob/main/examples/reusing_fuzzyfinder_and_autoreturn.py)
 
 ```py
 from curses_fzf import FuzzyFinder
@@ -259,18 +259,18 @@ If `multi=True` the number given as `autoreturn`'s value is checked against the 
 If `multi=False` the number given as `autoreturn`'s value is not relevant,
 the match will be returned, if there is only one.
 
-## Page Size
+## [Page Size](https://github.com/Heiko-san/curses_fzf/blob/fuzzy_scoring/examples/dict_items_with_simple_preview_and_preselect.py)
 
 The `page_size` parameter (default `10`) defines the number of entries that are
 skipped by the keys `PAGE_UP` and `PAGE_DOWN`.
 
-## Help
+## [Help](https://github.com/Heiko-san/curses_fzf/blob/main/README.md)
 
 Press `F1` to display a help screen with the list of default keyboard actions.
 
-[![Image: help screen](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/help.png)](https://github.com/Heiko-san/curses_fzf/blob/fuzzy_scoring/examples/reusing_fuzzyfinder_and_autoreturn.py)
+[![Image: help screen](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/help.png)](https://github.com/Heiko-san/curses_fzf/blob/main/examples/reusing_fuzzyfinder_and_autoreturn.py)
 
-## Exceptions
+## [Exceptions](https://github.com/Heiko-san/curses_fzf/blob/main/src/curses_fzf/errors.py)
 
 `CursesFzfException` is the base exception type that can catch any `curses_fzf` exceptions.
 
@@ -286,7 +286,7 @@ e.g. if the `display` function returns multiline text.
 A special case of this assertion is `CursesFzfIndexOutOfBounds`, which is raised e.g.
 if the calls to `query` modification functions use invalid indexes.
 
-## Keymap And More
+## [Keymap And More](https://github.com/Heiko-san/curses_fzf/blob/main/examples/custom_keybindings_and_external_functions.py)
 
 ```py
 from curses_fzf import FuzzyFinder
@@ -298,5 +298,5 @@ choices = fzf.find(data)
 
 `FuzzyFinder` is designed to allow for deep customization.
 
-See [`examples`](https://github.com/Heiko-san/curses_fzf/blob/fuzzy_scoring/examples/custom_keybindings_and_external_functions.py)
+See [`examples`](https://github.com/Heiko-san/curses_fzf/blob/main/examples/custom_keybindings_and_external_functions.py)
 folder for more detailed code snippets, e.g. on how to define your own keyboard actions.
