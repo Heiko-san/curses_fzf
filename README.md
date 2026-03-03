@@ -42,7 +42,7 @@ a single item can then be chosen from the list.
 Setting `multi` to `True` will allow you to select multiple items using the `TAB` key.
 
 In any case the returned result is a list of strings.
-It will contain exactly one items in single-selection mode and `0..n` in
+It will contain exactly one item in single-selection mode and `0..n` in
 multi-selection mode.
 
 If selection is aborted a `CursesFzfAborted` exception is raised, so single
@@ -67,7 +67,7 @@ The `query` can also be pre-seeded with a given string.
 The user is still able to fully modify the query, including completely clearing it.
 The parameter can be given to `FuzzyFinder` constructor or the object's `find` method.
 
-![](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple.png)
+![Image: simple elements with search query](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/simple.png)
 
 ## Title Prompting The User
 
@@ -127,7 +127,7 @@ This function is expected to return `True` if the item should be selected.
 
 The default implementation always returns `False`.
 
-![](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/multi_with_preview.png)
+![Image: multi select dicts with simple preview](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/multi_preview.png)
 
 ## Preview Function
 
@@ -171,7 +171,7 @@ The default value is `40` percent of the terminal window.
 Don't worry that the preview window might hide portions of your items,
 you can toggle the preview window any time using `Ctrl + P`.
 
-![](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple_with_preview.png)
+![Image: curses preview with scoring information](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/curses_preview.png)
 
 ## Scoring Function
 
@@ -264,7 +264,7 @@ skipped by the keys `PAGE_UP` and `PAGE_DOWN`.
 
 Press `F1` to display a help screen with the list of default keyboard actions.
 
-![](https://github.com/Heiko-san/curses_fzf/releases/download/0.2.0/help.png)
+![Image: help screen](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/help.png)
 
 ## Exceptions
 
