@@ -67,7 +67,7 @@ The `query` can also be pre-seeded with a given string.
 The user is still able to fully modify the query, including completely clearing it.
 The parameter can be given to `FuzzyFinder` constructor or the object's `find` method.
 
-![Image: simple elements with search query](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/simple.png)
+[![Image: simple elements with search query](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/simple.png)](https://github.com/Heiko-san/curses_fzf/blob/main/examples/minimal_example.py)
 
 ## Title Prompting The User
 
@@ -127,7 +127,7 @@ This function is expected to return `True` if the item should be selected.
 
 The default implementation always returns `False`.
 
-![Image: multi select dicts with simple preview](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/multi_preview.png)
+[![Image: multi select dicts with simple preview](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/multi_preview.png)](https://github.com/Heiko-san/curses_fzf/blob/main/examples/dict_items_with_simple_preview_and_preselect.py)
 
 ## Preview Function
 
@@ -171,7 +171,7 @@ The default value is `40` percent of the terminal window.
 Don't worry that the preview window might hide portions of your items,
 you can toggle the preview window any time using `Ctrl + P`.
 
-![Image: curses preview with scoring information](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/curses_preview.png)
+[![Image: curses preview with scoring information](https://raw.githubusercontent.com/Heiko-san/curses_fzf/refs/heads/main/docs/images/curses_preview.png)](https://github.com/Heiko-san/curses_fzf/blob/main/examples/curses_preview_with_score_displayed.py)
 
 ## Scoring Function
 
