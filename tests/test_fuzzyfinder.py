@@ -640,7 +640,7 @@ def test_render_no_match():
 
 def test_render_viewport():
     sr = ScoringResult("", "")
-    sr.add_match(1, 2, 5)
+    sr.add_match(1, "te", 5)
     mock_stdscr = MagicMock(spec=curses.window)
     fzf = FuzzyFinder()
     fzf.stdscr = mock_stdscr

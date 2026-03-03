@@ -61,7 +61,7 @@ class ScoringResult():
         """
         A list of tuples representing each match added by add_match().
         First tuple entry is the starting index of the match in original candidate string.
-        Second entry is the length of the match in characters.
+        Second entry is the matched substring.
         """
 
         self._already_matched_words = set()
@@ -96,16 +96,16 @@ class ScoringResult():
         except Exception:
             return NotImplemented
 
-    def add_match(self, position: int, length: int, score: int) -> None:
+    def add_match(self, position: int, match: str, score: int) -> None:
         """
-        Add position and length as a tuple to self.matches.
+        Add position and match as a tuple to self.matches.
         Position is meant to be the starting index of the match in original candidate string.
-        Length is the number of characters that are matched.
+        Match is the matched substring.
         The given score is added to self.score.
         """
         # TODO maybe add the matched string itself too, to allow match ordering
         self.score += score
-        self.matches.append((position, length))
+        self.matches.append((position, match))
 
     def find_best_word_match(self, word: str) -> Optional[Tuple[str, int, int, int]]:
         """
@@ -174,7 +174,7 @@ def scoring_full_words(query: str, candidate: str) -> ScoringResult:
         score = best_match[3]
         if best_match[2] == 0:
             score *= 1.5
-        result.add_match(match_position_in_candidate, len(q_word), int(score))
+        result.add_match(match_position_in_candidate, q_word, int(score))
 
     # small bonus if all matches are in the exact order of the query
     if all(result.matches[i][0] < result.matches[i+1][0] for i in

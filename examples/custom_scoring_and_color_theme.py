@@ -14,7 +14,7 @@ def my_score(query: str, candidate: str) -> ScoringResult:
         sr.score = 0
     else:
         for m in matches:
-            sr.add_match(m, len(query), 10)
+            sr.add_match(m, query, 10)
     return sr
 
 

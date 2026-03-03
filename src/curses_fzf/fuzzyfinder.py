@@ -512,7 +512,7 @@ class FuzzyFinder:
             for char_index, char in enumerate(display_item[:width-10]):
                 color = base_color
                 for match in score_result.matches:
-                    if match[0] <= char_index < match[0] + match[1]:
+                    if match[0] <= char_index < match[0] + len(match[1]):
                         color = self.color_theme.highlight
                 self.stdscr.addstr(row, ITEM_COL_START + 3 + char_index,
                                    char, curses.color_pair(color))

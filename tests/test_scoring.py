@@ -109,15 +109,15 @@ def test_scoring_full_words(henry, fox, banana):
     result = scoring_full_words(henry.query, henry.candidate)
     # 50 (% matched word "melt") * 1.5 (matched word is the beginning of the candidate word) * 1.2 (matched words are in the original order) = 90
     assert result.score == 90
-    assert result.matches == [(39, 2)]
+    assert result.matches == [(39, henry.query)]
     assert result._already_matched_words == {39}
     result = scoring_full_words("tch is he", henry.candidate)
     assert result.score == 84
-    assert result.matches == [(23, 3), (6, 2), (0, 2)]
+    assert result.matches == [(23, "tch"), (6, "is"), (0, "he")]
     assert result._already_matched_words == {0, 6, 21}
     result = scoring_full_words(fox.query, fox.candidate)
     assert result.score == 120
-    assert result.matches == [(16, 3), (10, 3)]
+    assert result.matches == [(16, "fox"), (10, "bro")]
     assert result._already_matched_words == {10, 16}
     # always the same result if the query is empty
     result = scoring_full_words("", fox.candidate)

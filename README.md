@@ -209,14 +209,14 @@ If the value of this field is `0`, the `candidate` will not be displayed in the 
 A higher value indicates a better match and will prioritize the item in the sorted list of results.
 
 The second field to notice is `matches`, which is a list of tuples containing the
-starting index and length of all matches inside the `candidate` string.
+starting index of all matches inside the `candidate` string along with the matched substring.
 If set, this information will be used by `FuzzyFinder` to colorize the matched substrings
 in the list of query results.
 
-The intended way to set those fields is `sr.add_match(position: int, length: int, score: int)`.
+The intended way to set those fields is `sr.add_match(position: int, match: str, score: int)`.
 The first two parameters represent one tuple appended to the `matches` list.
 The `score` parameter is the score associated with the partial match that `position`
-and `length` identifies, it is added to the `score` field of this `ScoringResult`.
+and `match` identifies, it is added to the `score` field of this `ScoringResult`.
 
 `ScoringResult` also assists with tokenization of the `query` and `candidate`,
 providing the fields `query`, `query_lower`, `query_words_with_index`, `candidate`,
