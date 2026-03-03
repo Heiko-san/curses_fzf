@@ -1,17 +1,18 @@
 from .__about__ import __version__
 from .colors import Color, ColorTheme
-from .errors import *
+from .errors import CursesFzfException, CursesFzfAborted, CursesFzfAssertion, CursesFzfIndexOutOfBounds
 from .fuzzyfinder import FuzzyFinder
 from .scoring import ScoringResult, scoring_full_words
 
 __all__ = [
-    "FuzzyFinder",
+    "__version__",
     "Color",
     "ColorTheme",
-    "ScoringResult",
-    "scoring_full_words",
     "CursesFzfException",
     "CursesFzfAborted",
     "CursesFzfAssertion",
     "CursesFzfIndexOutOfBounds",
+    "FuzzyFinder",
+    "ScoringResult",
+    "scoring_full_words",
 ]

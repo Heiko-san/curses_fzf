@@ -51,6 +51,7 @@ Repository = "https://github.com/Heiko-san/curses_fzf.git"
 dev = [
     "pytest>=7",
     "pytest-cov>=4",
+    "flake8>=7",
     "build>=1",
     "twine>=6",
     "pyyaml>=6",

@@ -3,12 +3,12 @@ from typing import Any, Callable, List, Tuple, Optional, Union
 
 from .colors import ColorTheme, _init_curses
 from .help import _help, _base_window
-from .errors import *
+from .errors import CursesFzfAborted, CursesFzfAssertion, CursesFzfIndexOutOfBounds
 from .scoring import ScoringResult, scoring_full_words
 
 
 ITEM_COL_START = 2
-SELECTED_MARKER =   "✅ "
+SELECTED_MARKER = "✅ "
 DESELECTED_MARKER = "   "
 CHAR_CONTINUED = "…"
 UnicodeKey = Union[int, str]
@@ -22,18 +22,18 @@ class FuzzyFinder:
     """
 
     def __init__(self,
-            multi: bool = False,
-            title: str = "ITEMS",
-            query: str = "",
-            display: Callable[[Any], str] = lambda item: str(item),
-            preselect: Callable[[Any, ScoringResult], bool] = lambda item, result: False,
-            preview: Optional[Callable[[curses.window, ColorTheme, Any, ScoringResult], str]] = None,
-            score: Callable[[str, str], ScoringResult] = scoring_full_words,
-            color_theme: Optional[ColorTheme] = None,
-            autoreturn: int = 0,
-            page_size: int = 10,
-            preview_window_percentage: int = 40,
-        ) -> None:
+                 multi: bool = False,
+                 title: str = "ITEMS",
+                 query: str = "",
+                 display: Callable[[Any], str] = lambda item: str(item),
+                 preselect: Callable[[Any, ScoringResult], bool] = lambda item, result: False,
+                 preview: Optional[Callable[[curses.window, ColorTheme, Any, ScoringResult], str]] = None,
+                 score: Callable[[str, str], ScoringResult] = scoring_full_words,
+                 color_theme: Optional[ColorTheme] = None,
+                 autoreturn: int = 0,
+                 page_size: int = 10,
+                 preview_window_percentage: int = 40,
+                 ) -> None:
         # user settings
         self.title: str = title
         """The title to display in the header of the interface."""
@@ -162,10 +162,10 @@ class FuzzyFinder:
 # main entry point
 
     def find(self,
-            items: List[Any],
-            title: Optional[str] = None,
-            query: Optional[str] = None,
-        ) -> List[Any]:
+             items: List[Any],
+             title: Optional[str] = None,
+             query: Optional[str] = None,
+             ) -> List[Any]:
         """
         Run the fuzzyfinder on the given list of items and return the selected
         item(s).
@@ -376,7 +376,8 @@ class FuzzyFinder:
         Keybinding function:
         Show the help screen.
         """
-        if self.stdscr: _help(self.stdscr, self.page_size, self.color_theme)
+        if self.stdscr:
+            _help(self.stdscr, self.page_size, self.color_theme)
 
 # loop functions
 
@@ -400,8 +401,7 @@ class FuzzyFinder:
         preselection function.
         """
         if self.multi:
-            self.selected = [item_tuple[0] for item_tuple in self.filtered
-                            if self.preselect(*item_tuple)]
+            self.selected = [item_tuple[0] for item_tuple in self.filtered if self.preselect(*item_tuple)]
 
     def _handle_input(self, key: UnicodeKey) -> None:
         """
@@ -410,7 +410,6 @@ class FuzzyFinder:
         """
         int_key = key if isinstance(key, int) else ord(key)
         kb_function = self.keymap.get(int_key)
-        #char = chr(key)
         if kb_function:
             kb_function()
         elif isinstance(key, str):
@@ -452,9 +451,10 @@ class FuzzyFinder:
         """
         Render the query line based on the current query and query cursor.
         """
-        if self.stdscr is None or width < 10: return
+        if self.stdscr is None or width < 10:
+            return
         # render query prompt
-        self.stdscr.addstr(0, 2, f"> ", curses.color_pair(self.color_theme.query))
+        self.stdscr.addstr(0, 2, "> ", curses.color_pair(self.color_theme.query))
         max_index = -1
         # render query characters with highlight on cursor position
         for i, c in enumerate(self.query[:width-6]):
@@ -471,18 +471,19 @@ class FuzzyFinder:
         """
         Render the "no match" message if there are no items matching the query.
         """
-        if self.stdscr is None or width < 10: return
+        if self.stdscr is None or width < 10:
+            return
         if not self.filtered:
-            self.stdscr.addstr(3, ITEM_COL_START + 2,
-                "No matching items!"[:width-6],
-                curses.color_pair(self.color_theme.no_match))
+            self.stdscr.addstr(3, ITEM_COL_START + 2, "No matching items!"[:width-6],
+                               curses.color_pair(self.color_theme.no_match))
 
-    def _render_viewport(self, height: int, width: int) -> None:
+    def _render_viewport(self, height: int, width: int) -> None:  # noqa: C901
         """
         Render the current viewport of the filtered items based on the current
         items cursor.
         """
-        if self.stdscr is None or height < 7 or width < 10: return
+        if self.stdscr is None or height < 7 or width < 10:
+            return
         # query, footer, 2x lines and 1 empty line on top and bottom of list = 6
         viewport_height = height - 6
         viewport_start = max(0, self.cursor_items - viewport_height + 1)
@@ -514,7 +515,7 @@ class FuzzyFinder:
                     if match[0] <= char_index < match[0] + match[1]:
                         color = self.color_theme.highlight
                 self.stdscr.addstr(row, ITEM_COL_START + 3 + char_index,
-                    char, curses.color_pair(color))
+                                   char, curses.color_pair(color))
             # if the line is too long end it with "…"
             if len(display_item) > width - 10:
                 self.stdscr.addstr(row, width - 6, CHAR_CONTINUED, curses.color_pair(base_color))
@@ -523,7 +524,8 @@ class FuzzyFinder:
         """
         Render the preview window if it is enabled and a preview function is provided.
         """
-        if self.stdscr is None: return None
+        if self.stdscr is None:
+            return None
         # deactivate the preview window if the main window gets too small to display it properly
         if height < 7 or width < 30:
             self.show_preview = False
@@ -537,10 +539,10 @@ class FuzzyFinder:
             )
             sub_win.box()
             sub_win.addstr(0, 2, " PREVIEW ",
-                curses.color_pair(self.color_theme.window_title))
+                           curses.color_pair(self.color_theme.window_title))
             if self.filtered:
-                text = self.preview(sub_win, self.color_theme,
-                    self.filtered[self.cursor_items][0], self.filtered[self.cursor_items][1])
+                text = self.preview(sub_win, self.color_theme, self.filtered[self.cursor_items][0],
+                                    self.filtered[self.cursor_items][1])
                 # if the preview function returns any text assume the user didn't
                 # use the preview_window parameter and render the text line by line
                 # inside the preview window, honoring the available space
@@ -551,7 +553,7 @@ class FuzzyFinder:
                         if i > sub_h - 3:
                             break
                         sub_win.addstr(i, 4, line[:sub_w - 6],
-                            curses.color_pair(self.color_theme.text))
+                                       curses.color_pair(self.color_theme.text))
                         i += 1
         return sub_win
 
@@ -559,7 +561,8 @@ class FuzzyFinder:
         self.stdscr = stdscr
         self._calculate_filtered()
         autoreturn_value = self._autoreturn()
-        if autoreturn_value is not None: return autoreturn_value
+        if autoreturn_value is not None:
+            return autoreturn_value
         self._calculate_preselection()
         _init_curses()
         while True:

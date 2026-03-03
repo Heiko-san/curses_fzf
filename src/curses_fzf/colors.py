@@ -31,16 +31,16 @@ class ColorTheme:
     A color theme for the fuzzyfinder, to allow for easy customization.
     """
     def __init__(self,
-            text: Color = Color.WHITE,
-            window_title: Color = Color.YELLOW,
-            no_match: Color = Color.RED,
-            query: Color = Color.YELLOW,
-            footer: Color = Color.YELLOW,
-            selected: Color = Color.GREEN,
-            cursor: Color = Color.BLACK_ON_WHITE,
-            cursor_selected: Color = Color.BLACK_ON_GREEN,
-            highlight: Color = Color.BLACK_ON_CYAN,
-        ) -> None:
+                 text: Color = Color.WHITE,
+                 window_title: Color = Color.YELLOW,
+                 no_match: Color = Color.RED,
+                 query: Color = Color.YELLOW,
+                 footer: Color = Color.YELLOW,
+                 selected: Color = Color.GREEN,
+                 cursor: Color = Color.BLACK_ON_WHITE,
+                 cursor_selected: Color = Color.BLACK_ON_GREEN,
+                 highlight: Color = Color.BLACK_ON_CYAN,
+                 ) -> None:
         self.text = text
         self.window_title = window_title
         self.no_match = no_match
