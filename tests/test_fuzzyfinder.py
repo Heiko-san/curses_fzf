@@ -1,8 +1,8 @@
 import pytest
 import curses
 from unittest.mock import MagicMock, patch, call
-from curses_fzf import *
-import curses_fzf
+from curses_fzf import FuzzyFinder, ScoringResult, CursesFzfAborted, CursesFzfAssertion, CursesFzfIndexOutOfBounds
+
 
 def test_kb_move_items_cursor_absolute():
     sr = ScoringResult("", "")
@@ -19,6 +19,7 @@ def test_kb_move_items_cursor_absolute():
     assert fzf.cursor_items == 2
     fzf.kb_move_items_cursor_absolute(0)
     assert fzf.cursor_items == 0
+
 
 def test_kb_move_cursor_relative():
     sr = ScoringResult("", "")
@@ -42,6 +43,7 @@ def test_kb_move_cursor_relative():
     fzf.kb_move_items_cursor_relative(-10)
     assert fzf.cursor_items == 0
 
+
 def test_kb_move_query_cursor_absolute():
     fzf = FuzzyFinder(query="my initial query")
     assert fzf.cursor_query == 16
@@ -53,6 +55,7 @@ def test_kb_move_query_cursor_absolute():
     assert fzf.cursor_query == 16
     fzf.kb_move_query_cursor_absolute(2)
     assert fzf.cursor_query == 2
+
 
 def test_kb_move_query_cursor_relative():
     fzf = FuzzyFinder(query="my initial query")
@@ -72,37 +75,41 @@ def test_kb_move_query_cursor_relative():
     fzf.kb_move_query_cursor_relative(10)
     assert fzf.cursor_query == 16
 
+
 def test_kb_abort_selection():
     fzf = FuzzyFinder()
     with pytest.raises(CursesFzfAborted):
         fzf.kb_abort_selection()
 
+
 def test_kb_accept_selection():
     sr = ScoringResult("", "")
     fzf_single = FuzzyFinder()
-    assert fzf_single.return_selection_now == False
+    assert fzf_single.return_selection_now == False  # noqa: E712
     # don't allow accept in single mode if no item in filtered list
     fzf_single.filtered = []
     fzf_single.kb_accept_selection()
-    assert fzf_single.return_selection_now == False
+    assert fzf_single.return_selection_now == False  # noqa: E712
     # accept selection
     fzf_single.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
     fzf_single.kb_accept_selection()
-    assert fzf_single.return_selection_now == True
+    assert fzf_single.return_selection_now == True  # noqa: E712
     fzf_multi = FuzzyFinder(multi=True)
-    assert fzf_multi.return_selection_now == False
+    assert fzf_multi.return_selection_now == False  # noqa: E712
     # allow accept in multi mode even if no item in filtered list
     fzf_multi.filtered = []
     fzf_multi.kb_accept_selection()
-    assert fzf_multi.return_selection_now == True
+    assert fzf_multi.return_selection_now == True  # noqa: E712
+
 
 def test_kb_toggle_preview():
     fzf = FuzzyFinder()
-    assert fzf.show_preview == True
+    assert fzf.show_preview == True  # noqa: E712
     fzf.kb_toggle_preview()
-    assert fzf.show_preview == False
+    assert fzf.show_preview == False  # noqa: E712
     fzf.kb_toggle_preview()
-    assert fzf.show_preview == True
+    assert fzf.show_preview == True  # noqa: E712
+
 
 def test_kb_toggle_selection():
     sr = ScoringResult("", "")
@@ -132,6 +139,7 @@ def test_kb_toggle_selection():
     fzf.kb_toggle_selection()
     assert fzf.selected == []
 
+
 def test_kb_select_all():
     sr = ScoringResult("", "")
     fzf = FuzzyFinder(multi=True)
@@ -146,6 +154,7 @@ def test_kb_select_all():
     fzf.kb_select_all()
     assert fzf.selected == ["item4", "item5", "item1", "item2", "item3"]
 
+
 def test_kb_deselect_all():
     sr = ScoringResult("", "")
     fzf = FuzzyFinder(multi=True)
@@ -159,6 +168,7 @@ def test_kb_deselect_all():
     fzf.selected = ["item1", "item2", "item3", "item4", "item5"]
     fzf.kb_deselect_all()
     assert fzf.selected == ["item4", "item5"]
+
 
 def test_kb_reset_query():
     sr = ScoringResult("", "")
@@ -176,6 +186,7 @@ def test_kb_reset_query():
     assert fzf.cursor_items == 2
     fzf.kb_reset_query()
     assert fzf.cursor_items == 2
+
 
 def test_kb_add_to_query():
     sr = ScoringResult("", "")
@@ -235,6 +246,7 @@ def test_kb_add_to_query():
     with pytest.raises(CursesFzfIndexOutOfBounds):
         fzf.kb_add_to_query("x", 99)
 
+
 def test_kb_add_to_query_cursor():
     sr = ScoringResult("", "")
     fzf = FuzzyFinder(query="my initial query")
@@ -257,6 +269,7 @@ def test_kb_add_to_query_cursor():
     assert fzf.query == "barmy fooinitial querya"
     assert fzf.cursor_items == 0
     assert fzf.cursor_query == 3
+
 
 def test_kb_remove_from_query():
     sr = ScoringResult("", "")
@@ -340,6 +353,7 @@ def test_kb_remove_from_query():
     assert fzf.cursor_items == 0
     assert fzf.cursor_query == 2
 
+
 def test_kb_remove_from_query_cursor():
     sr = ScoringResult("", "")
     fzf = FuzzyFinder(query="my initial query")
@@ -390,6 +404,7 @@ def test_kb_remove_from_query_cursor():
     assert fzf.query == "y iital quer"
     assert fzf.cursor_items == 2
     assert fzf.cursor_query == 12
+
 
 def test_keymap():
     sr = ScoringResult("", "")
@@ -448,9 +463,9 @@ def test_keymap():
     with pytest.raises(CursesFzfAborted):
         fzf.keymap[27]()
     assert curses.KEY_ENTER in fzf.keymap  # Enter
-    assert fzf.return_selection_now == False
+    assert fzf.return_selection_now == False  # noqa: E712
     fzf.keymap[curses.KEY_ENTER]()
-    assert fzf.return_selection_now == True
+    assert fzf.return_selection_now == True  # noqa: E712
     assert 9 in fzf.keymap  # Tab
     fzf._cursor_items = 1
     fzf.selected = []
@@ -464,11 +479,12 @@ def test_keymap():
     fzf.keymap[24]()
     assert fzf.selected == []
     assert 16 in fzf.keymap  # Ctrl+P
-    assert fzf.show_preview == True
+    assert fzf.show_preview == True  # noqa: E712
     fzf.keymap[16]()
-    assert fzf.show_preview == False
+    assert fzf.show_preview == False  # noqa: E712
     assert curses.KEY_F1 in fzf.keymap  # F1
     assert fzf.keymap[curses.KEY_F1] == fzf.kb_show_help
+
 
 def test_handle_input():
     sr = ScoringResult("", "")
@@ -498,6 +514,7 @@ def test_handle_input():
     assert fzf.cursor_query == 3
     assert fzf.cursor_items == 0
 
+
 def test_cursor_items():
     sr = ScoringResult("", "")
     fzf = FuzzyFinder()
@@ -510,6 +527,7 @@ def test_cursor_items():
     with pytest.raises(AttributeError):
         fzf.cursor_items = 2  # type: ignore
 
+
 def test_cursor_query():
     fzf = FuzzyFinder(query="my initial query")
     assert fzf.cursor_query == 16
@@ -519,6 +537,7 @@ def test_cursor_query():
     # kb_move_items_cursor_absolute and kb_move_items_cursor_relative methods
     with pytest.raises(AttributeError):
         fzf.cursor_query = 2  # type: ignore
+
 
 def test_query():
     sr = ScoringResult("", "")
@@ -537,6 +556,7 @@ def test_query():
     assert fzf.cursor_items == 0
     assert fzf.cursor_query == 9
 
+
 def test_calculate_filtered():
     fzf = FuzzyFinder(query="app")
     fzf.all_items = ["apple", "banana", "orange"]
@@ -545,12 +565,14 @@ def test_calculate_filtered():
     assert fzf.filtered[0][0] == "apple"
     assert fzf.filtered[0][1].score > 0
 
+
 def test_calculate_preselection():
     sr = ScoringResult("", "")
     fzf = FuzzyFinder(multi=True, preselect=lambda item, score: item == "item2")
     fzf.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
     fzf._calculate_preselection()
     assert fzf.selected == ["item2"]
+
 
 def test_get_return_value():
     sr = ScoringResult("", "")
@@ -570,20 +592,22 @@ def test_get_return_value():
     fzf_single.selected = ["item3"]
     assert fzf_single._get_return_value() == ["item3"]
 
+
 def test_autoreturn():
     sr = ScoringResult("", "")
     fzf_multi = FuzzyFinder(multi=True, autoreturn=3)
     fzf_multi.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
     assert fzf_multi._autoreturn() == ["item1", "item2", "item3"]
     fzf_multi.filtered = [("item1", sr), ("item2", sr)]
-    assert fzf_multi._autoreturn() == None
+    assert fzf_multi._autoreturn() is None
     fzf_multi.filtered = [("item1", sr), ("item2", sr), ("item3", sr), ("item4", sr)]
-    assert fzf_multi._autoreturn() == None
+    assert fzf_multi._autoreturn() is None
     fzf_single = FuzzyFinder(multi=False, autoreturn=3)
     fzf_single.filtered = [("item1", sr), ("item2", sr), ("item3", sr)]
-    assert fzf_single._autoreturn() == None
+    assert fzf_single._autoreturn() is None
     fzf_single.filtered = [("item1", sr)]
     assert fzf_single._autoreturn() == ["item1"]
+
 
 def test_render_query():
     # test short query with cursor at the end
@@ -614,6 +638,7 @@ def test_render_query():
         call(0, 7, 'u', 33),
     ], any_order=False)
 
+
 def test_render_no_match():
     # enough width for text
     mock_stdscr = MagicMock(spec=curses.window)
@@ -638,9 +663,10 @@ def test_render_no_match():
         call(3, 4, 'No m', 31),
     ], any_order=False)
 
+
 def test_render_viewport():
     sr = ScoringResult("", "")
-    sr.add_match(1, 2, 5)
+    sr.add_match(1, "te", 5)
     mock_stdscr = MagicMock(spec=curses.window)
     fzf = FuzzyFinder()
     fzf.stdscr = mock_stdscr
@@ -709,26 +735,28 @@ def test_render_viewport():
         with pytest.raises(CursesFzfAssertion):
             fzf._render_viewport(24, 24)
 
+
 def test_render_preview_noop():
     fzf = FuzzyFinder(preview=lambda w, c, i, s: f"{i}\n{s.score}")
     # stdscr not set
-    assert fzf._render_preview(20, 50) == None
+    assert fzf._render_preview(20, 50) is None
     # deactivate preview if window gets too small
     mock_stdscr = MagicMock(spec=curses.window)
     fzf.stdscr = mock_stdscr
     fzf.show_preview = True
-    assert fzf._render_preview(6, 50) == None
-    assert fzf.show_preview == False
+    assert fzf._render_preview(6, 50) is None
+    assert fzf.show_preview == False  # noqa: E712
     fzf.show_preview = True
-    assert fzf._render_preview(20, 29) == None
-    assert fzf.show_preview == False
+    assert fzf._render_preview(20, 29) is None
+    assert fzf.show_preview == False  # noqa: E712
     # return if show_preview is False
-    assert fzf._render_preview(20, 50) == None
+    assert fzf._render_preview(20, 50) is None
     # terutn if no preview function is set
     fzf = FuzzyFinder()
     mock_stdscr = MagicMock(spec=curses.window)
     fzf.stdscr = mock_stdscr
-    assert fzf._render_preview(20, 50) == None
+    assert fzf._render_preview(20, 50) is None
+
 
 def test_render_preview():
     sr = ScoringResult("", "")
@@ -740,7 +768,7 @@ def test_render_preview():
     fzf.stdscr = mock_stdscr
     fzf.show_preview = True
     with patch('curses.color_pair') as mock_color_pair, \
-        patch('curses.newwin') as mock_newwin:
+         patch('curses.newwin') as mock_newwin:
         mock_color_pair.side_effect = lambda x: x   # return color pair ID directly
         mock_newwin.return_value = mock_sub_win
         rwin = fzf._render_preview(10, 30)
@@ -749,13 +777,14 @@ def test_render_preview():
         mock_sub_win.box.assert_called_once()
         mock_sub_win.getmaxyx.assert_called_once()
         mock_sub_win.addstr.assert_has_calls([
-            call(0, 2, ' PREVIEW ',33),
+            call(0, 2, ' PREVIEW ', 33),
             call(2, 4, 'item1', 37),
             call(3, 4, '0', 37),
         ], any_order=False)
         # should have been truncated
         assert call(4, 4, "foo", 37) not in mock_sub_win.addstr.call_args_list
         assert call(5, 4, "bar", 37) not in mock_sub_win.addstr.call_args_list
+
 
 def test_find():
     fzf = FuzzyFinder(title="my initial title", query="my initial query")

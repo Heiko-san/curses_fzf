@@ -21,7 +21,7 @@ def curses_preview(preview_window: curses.window, color_theme: ColorTheme, item:
     for i, c in enumerate(result.candidate):
         color = color_theme.text
         for match in result.matches:
-            if match[0] <= i < match[0] + match[1]:
+            if match[0] <= i < match[0] + len(match[1]):
                 color = Color.WHITE_ON_MAGENTA
         if height > y + 1:
             preview_window.addstr(y, x, c, curses.color_pair(color))

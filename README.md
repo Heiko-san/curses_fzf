@@ -1,5 +1,7 @@
 # curses_fzf
 
+[![codecov](https://codecov.io/github/Heiko-san/curses_fzf/graph/badge.svg?token=8JFSFIFJ3K)](https://codecov.io/github/Heiko-san/curses_fzf)
+
 A pure Python implementation of fzf (fuzzyfinder) using the curses library -
 no external `fzf` binary required.
 
@@ -65,7 +67,7 @@ The `query` can also be pre-seeded with a given string.
 The user is still able to fully modify the query, including completely clearing it.
 The parameter can be given to `FuzzyFinder` constructor or the object's `find` method.
 
-![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple.png)
+![](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple.png)
 
 ## Title Prompting The User
 
@@ -125,7 +127,7 @@ This function is expected to return `True` if the item should be selected.
 
 The default implementation always returns `False`.
 
-![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/multi_with_preview.png)
+![](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/multi_with_preview.png)
 
 ## Preview Function
 
@@ -169,7 +171,7 @@ The default value is `40` percent of the terminal window.
 Don't worry that the preview window might hide portions of your items,
 you can toggle the preview window any time using `Ctrl + P`.
 
-![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple_with_preview.png)
+![](https://github.com/Heiko-san/curses_fzf/releases/download/0.1.0/simple_with_preview.png)
 
 ## Scoring Function
 
@@ -207,14 +209,14 @@ If the value of this field is `0`, the `candidate` will not be displayed in the 
 A higher value indicates a better match and will prioritize the item in the sorted list of results.
 
 The second field to notice is `matches`, which is a list of tuples containing the
-starting index and length of all matches inside the `candidate` string.
+starting index of all matches inside the `candidate` string along with the matched substring.
 If set, this information will be used by `FuzzyFinder` to colorize the matched substrings
 in the list of query results.
 
-The intended way to set those fields is `sr.add_match(position: int, length: int, score: int)`.
+The intended way to set those fields is `sr.add_match(position: int, match: str, score: int)`.
 The first two parameters represent one tuple appended to the `matches` list.
 The `score` parameter is the score associated with the partial match that `position`
-and `length` identifies, it is added to the `score` field of this `ScoringResult`.
+and `match` identifies, it is added to the `score` field of this `ScoringResult`.
 
 `ScoringResult` also assists with tokenization of the `query` and `candidate`,
 providing the fields `query`, `query_lower`, `query_words_with_index`, `candidate`,
@@ -260,9 +262,9 @@ skipped by the keys `PAGE_UP` and `PAGE_DOWN`.
 
 ## Help
 
-Press `F1` to display a help screen with a list of keyboard actions.
+Press `F1` to display a help screen with the list of default keyboard actions.
 
-![image](https://github.com/Heiko-san/curses_fzf/releases/download/0.2.0/help.png)
+![](https://github.com/Heiko-san/curses_fzf/releases/download/0.2.0/help.png)
 
 ## Exceptions
 
