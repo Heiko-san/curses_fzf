@@ -54,6 +54,9 @@ dev = [
     "flake8>=7",
     "build>=1",
     "twine>=6",
+    "sphinx>=7",
+    "myst-parser>=3",
+    "sphinx-rtd-theme>=3",
     "pyyaml>=6",
 ]
 
