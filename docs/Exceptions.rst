@@ -25,9 +25,3 @@ Exception Reference
 
 .. autoclass:: curses_fzf.CursesFzfIndexOutOfBounds
    :show-inheritance:
-
-Exception Tree
---------------
-
-.. inheritance-diagram:: curses_fzf.errors
-   :parts: 1
