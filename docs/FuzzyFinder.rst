@@ -1,5 +1,5 @@
-FuzzyFinder - main class
-========================
+FuzzyFinder
+===========
 
 .. autoclass:: curses_fzf.FuzzyFinder
    :members:

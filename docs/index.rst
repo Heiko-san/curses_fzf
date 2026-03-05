@@ -10,7 +10,9 @@ Welcome to curses-fzf's documentation!
    :maxdepth: 2
    :caption: User Guide
 
-   usage
+   install
+   basic_usage
+   advanced_usage
 
 .. toctree::
    :maxdepth: 2

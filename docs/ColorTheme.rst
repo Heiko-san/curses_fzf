@@ -1,5 +1,5 @@
-Color Themes & Curses Color Definitions
-=======================================
+ColorTheme & Curses Color Definitions
+=====================================
 
 ColorTheme
 ----------

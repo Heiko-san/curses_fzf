@@ -1,5 +1,5 @@
-Exception Classes
-=================
+Exceptions
+==========
 
 This module defines its own exception classes, which all inherit from the base
 class :class:`~curses_fzf.CursesFzfException` (which itself inherits

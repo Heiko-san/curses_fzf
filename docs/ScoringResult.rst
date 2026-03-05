@@ -1,5 +1,5 @@
-Scoring Result Helper Class
-===========================
+ScoringResult
+=============
 
 .. autoclass:: curses_fzf.ScoringResult
    :members:
