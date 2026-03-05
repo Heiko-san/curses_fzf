@@ -16,9 +16,63 @@ UnicodeKey = Union[int, str]
 
 class FuzzyFinder:
     """
-    FuzzyFinder is a class that implements a fuzzy finding interface using the curses library.
-    It allows the user to filter a list of items based on a query and select one
-    or more items from the filtered list.
+    :class:`~curses_fzf.FuzzyFinder` is the main entry point for the library.
+    Use :meth:`~curses_fzf.FuzzyFinder.find` to run the fuzzyfinder on a list of
+    items and return the selection.
+    It allows the user to filter a list of items based on a
+    :attr:`~curses_fzf.FuzzyFinder.query` entered in UI or preseeded in
+    constructor.
+
+    Args:
+        multi (bool): :attr:`~curses_fzf.FuzzyFinder.multi` selection mode
+            determines whether to allow selection of multiple items or not.
+            Default is ``False``.
+        title (str): The :attr:`~curses_fzf.FuzzyFinder.title` to display in the
+            upper left corner of the main :class:`~curses_fzf.FuzzyFinder` window.
+            Default is ``"ITEMS"``.
+        query (str): The initial :attr:`~curses_fzf.FuzzyFinder.query` to preseed
+            the interface with.
+            Default is ``""``.
+            See :attr:`~curses_fzf.FuzzyFinder.query` for more details.
+        display (Callable[[Any], str]): :meth:`~curses_fzf.FuzzyFinder.display` function
+            is used to convert an item to a string for display and matching purposes.
+            Default is ``lambda item: str(item)``.
+            See :meth:`~curses_fzf.FuzzyFinder.display` for more details.
+        preselect (Callable[[Any, ScoringResult], bool]): :meth:`~curses_fzf.FuzzyFinder.preselect`
+            is a function to determine if an item should be preselected in
+            :attr:`~curses_fzf.FuzzyFinder.multi` selection mode based on the item
+            and its scoring result.
+            Default is a function that always returns ``False``.
+            See :meth:`~curses_fzf.FuzzyFinder.preselect` for more details.
+        preview (Optional[Callable[[curses.window, ColorTheme, Any, ScoringResult], str]]): Show
+            a preview window if :meth:`~curses_fzf.FuzzyFinder.preview` function is provided.
+            Default is ``None``.
+            See :meth:`~curses_fzf.FuzzyFinder.preview` for more details.
+        score (Callable[[str, str], ScoringResult]): The :meth:`~curses_fzf.FuzzyFinder.score`
+            function is used to calculate the score of an item from :attr:`~curses_fzf.FuzzyFinder.all_items`
+            list based on the current :attr:`~curses_fzf.FuzzyFinder.query` and the
+            :meth:`~curses_fzf.FuzzyFinder.display` string of the item.
+            Default is :func:`~curses_fzf.scoring_full_words`.
+            See :meth:`~curses_fzf.FuzzyFinder.score` for more details.
+        color_theme (Optional[ColorTheme]): The :attr:`~curses_fzf.FuzzyFinder.color_theme`
+            to use for the interface, if ``None`` was given the default
+            :class:`~curses_fzf.ColorTheme` will be used.
+            Default is ``None``.
+        autoreturn (int): If :attr:`~curses_fzf.FuzzyFinder.autoreturn` is a positive integer,
+            the :class:`~curses_fzf.FuzzyFinder` will automatically return the items
+            in :attr:`~curses_fzf.FuzzyFinder.filtered` list without user input if
+            the number of items in the filtered list matches the given number.
+            If :attr:`~curses_fzf.FuzzyFinder.multi` is ``False``, the actual value
+            of :attr:`~curses_fzf.FuzzyFinder.autoreturn` is ignored and the
+            :class:`~curses_fzf.FuzzyFinder` will automatically return if there is
+            exactly one item in the filtered list.
+            Default is ``0``.
+        page_size (int):  Number of items to move in :attr:`~curses_fzf.FuzzyFinder.filtered`
+            list when pressing :kbd:`PAGE_UP`/:kbd:`PAGE_DOWN`.
+            Default is ``10``.
+        preview_window_percentage (int): :attr:`~curses_fzf.FuzzyFinder.preview_window_percentage`
+            defines the width of the preview window as a percentage of the total width.
+            Default is ``40``.
     """
 
     def __init__(self,
@@ -36,52 +90,200 @@ class FuzzyFinder:
                  ) -> None:
         # user settings
         self.title: str = title
-        """The title to display in the header of the interface."""
+        """
+        The :attr:`~curses_fzf.FuzzyFinder.title` to display in the upper left
+        corner of the main :class:`~curses_fzf.FuzzyFinder` window.
+        Default is ``"ITEMS"``.
+        """
         self.autoreturn: int = autoreturn
         """
-        If not 0 return directly if in single mode only 1 item is provided or left after initial filter.
-        In multi mode the number of items need to match the number given as autoreturn's value.
+        If :attr:`~curses_fzf.FuzzyFinder.autoreturn` is a positive integer,
+        the :class:`~curses_fzf.FuzzyFinder` will automatically return the items
+        in :attr:`~curses_fzf.FuzzyFinder.filtered` list without user input if
+        the number of items in the filtered list matches the given number.
+        If :attr:`~curses_fzf.FuzzyFinder.multi` is ``False``, the actual value
+        of :attr:`~curses_fzf.FuzzyFinder.autoreturn` is ignored and the
+        :class:`~curses_fzf.FuzzyFinder` will automatically return if there is
+        exactly one item in the filtered list.
+        Default is ``0``.
         """
         self.preview_window_percentage: int = preview_window_percentage
-        """The percentage of the total width that the preview window should take."""
+        """
+        :attr:`~curses_fzf.FuzzyFinder.preview_window_percentage` defines the
+        width of the preview window as a percentage of the total width.
+        The default value is ``40``.
+        The preview window will be placed on the right side of the screen if a
+        :meth:`~curses_fzf.FuzzyFinder.preview` function is provided.
+        """
         self.page_size: int = page_size
-        """Number of items to move when pressing page up/down."""
+        """
+        Number of items to move in :attr:`~curses_fzf.FuzzyFinder.filtered` list
+        when pressing :kbd:`PAGE_UP`/:kbd:`PAGE_DOWN`.
+        Default is ``10``.
+        """
         self.multi: bool = multi
-        """Whether to allow selection of multiple items or not."""
+        """
+        :attr:`~curses_fzf.FuzzyFinder.multi` selection mode determines
+        whether to allow selection of multiple items or not.
+        Default is ``False``.
+        """
         if color_theme is None:
             color_theme = ColorTheme()
         self.color_theme: ColorTheme = color_theme
-        """The color theme to use for the interface, if None the default color theme will be used."""
+        """
+        The :attr:`~curses_fzf.FuzzyFinder.color_theme` to use for the interface.
+        If ``None`` was given in the constructor, the default
+        :class:`~curses_fzf.ColorTheme` will be used.
+        """
         # function pointers
         self.display: Callable[[Any], str] = display
-        """Function to convert an item to a string for display and matching purposes."""
+        """
+        :meth:`~curses_fzf.FuzzyFinder.display` function is used to convert an
+        item to a string for display and matching purposes.
+        Default is ``lambda item: str(item)``.
+
+        Args:
+            item (Any): The item to convert to a string.
+
+        Returns:
+            str: The single-line string representation of the item.
+        """
         self.preselect: Callable[[Any, ScoringResult], bool] = preselect
-        """Function to determine if an item should be preselected."""
+        """
+        :meth:`~curses_fzf.FuzzyFinder.preselect` is a function to determine if
+        an item should be preselected in :attr:`~curses_fzf.FuzzyFinder.multi`
+        selection mode based on the item and its scoring result.
+        Default is a function that always returns ``False``.
+
+        Args:
+            item (Any): The item from :attr:`~curses_fzf.FuzzyFinder.filtered`
+                list to determine the preselection for.
+            scoring_result (ScoringResult): The :class:`~curses_fzf.ScoringResult`
+                of the item based on the current :attr:`~curses_fzf.FuzzyFinder.query`.
+
+        Returns:
+            bool: Whether the item should be preselected or not.
+        """
         self.preview: Optional[Callable[[curses.window, ColorTheme, Any, ScoringResult], str]] = preview
-        """Function to generate a preview for the given item."""
+        """
+        If a :meth:`~curses_fzf.FuzzyFinder.preview` function is provided, a
+        preview window will be shown for the currently highlighted item in the
+        :attr:`~curses_fzf.FuzzyFinder.filtered` list.
+        :attr:`~curses_fzf.FuzzyFinder.preview_window_percentage` defines the
+        width of the preview window as a percentage of the total width.
+        The preview window can be toggled with :kbd:`Ctrl + P`.
+
+        The :meth:`~curses_fzf.FuzzyFinder.preview` function can be used in two ways:
+
+        1. If the function returns a non-empty string, it will be rendered line
+           by line inside the preview window, honoring the available space.
+           In this case the :py:obj:`curses.window` parameter can be ignored.
+        2. If the function returns an empty string, :class:`~curses_fzf.FuzzyFinder`
+           will assume that the user is handling the rendering of the preview window
+           using the provided :py:obj:`curses.window` parameter.
+           In this case the user needs to take care of window boundaries.
+
+        Args:
+            preview_window (curses.window): The curses window to render the preview in.
+            color_theme (ColorTheme): The :attr:`~curses_fzf.FuzzyFinder.color_theme`
+                of :class:`~curses_fzf.FuzzyFinder`.
+            item (Any): The item from :attr:`~curses_fzf.FuzzyFinder.filtered` list
+                to generate the preview for.
+            score_result (ScoringResult): The :class:`~curses_fzf.ScoringResult` of
+                the item based on the current :attr:`~curses_fzf.FuzzyFinder.query`.
+
+        Returns:
+            str: The text to render in the preview window, if it is non-empty.
+        """
         self.score: Callable[[str, str], ScoringResult] = score
-        """Function to score an item based on the query."""
+        """
+        The :meth:`~curses_fzf.FuzzyFinder.score` function is used to calculate
+        the score of an item from :attr:`~curses_fzf.FuzzyFinder.all_items` list
+        based on the current :attr:`~curses_fzf.FuzzyFinder.query` and the
+        :meth:`~curses_fzf.FuzzyFinder.display` string of the item.
+        The :attr:`~curses_fzf.ScoringResult.score` is used to sort the items in
+        the :attr:`~curses_fzf.FuzzyFinder.filtered` list and to determine which
+        items match the query.
+
+        Default is :func:`~curses_fzf.scoring_full_words`.
+
+        Args:
+            query (str): The current :attr:`~curses_fzf.FuzzyFinder.query`.
+                This is the string that the user has entered to filter the items.
+            candidate (str): The string representation of the item as returned by
+                :meth:`~curses_fzf.FuzzyFinder.display`.
+                This is the string that is used for matching and display purposes.
+
+        Returns:
+            ScoringResult: The :class:`~curses_fzf.ScoringResult` of the item.
+        """
         # internal state
         self.stdscr: Optional[curses.window] = None
-        """The main curses window, will be set in main_loop."""
+        """
+        The main curses window, will be set automatically in
+        :class:`~curses_fzf.FuzzyFinder`'s main loop.
+        """
         self.all_items: List[Any] = []
-        """The original list of all items given by the user."""
+        """
+        The original list of all items given by the user in
+        :meth:`~curses_fzf.FuzzyFinder.find` method.
+        This list will be filtered by :attr:`~curses_fzf.FuzzyFinder.query`
+        into :attr:`~curses_fzf.FuzzyFinder.filtered` list.
+        """
         self._preseed_query: str = query
-        """A saved copy of the initial query given on initialization, used to reset the query."""
+        """
+        Private: A saved copy of the initial query given on initialization,
+        used to reset the query on :meth:`~curses_fzf.FuzzyFinder.find` call.
+        """
         self._query: str = query
-        """Private: Use the query property to update the query."""
+        """
+        Private: Use the :attr:`~curses_fzf.FuzzyFinder.query` property to update the query.
+        """
         self.show_preview: bool = True
-        """Show or hide the preview window."""
+        """
+        Show or hide the preview window.
+        This can be toggled with :kbd:`Ctrl + P` if a
+        :meth:`~curses_fzf.FuzzyFinder.preview` function is provided.
+        It will be set by :meth:`~curses_fzf.FuzzyFinder.kb_toggle_preview`.
+        """
         self._cursor_items: int = 0
-        """Private: Use the cursor_items property to get the value."""
+        """
+        Private: Use the :attr:`~curses_fzf.FuzzyFinder.cursor_items` property
+        to get the value.
+        Use :attr:`~curses_fzf.FuzzyFinder.kb_move_items_cursor_absolute`
+        and :attr:`~curses_fzf.FuzzyFinder.kb_move_items_cursor_relative` to
+        update the cursor position.
+        """
         self._cursor_query: int = len(self._query)
-        """Private: Use the cursor_query property to get the value."""
+        """
+        Private: Use the :attr:`~curses_fzf.FuzzyFinder.cursor_query` property
+        to get the value.
+        Use :attr:`~curses_fzf.FuzzyFinder.kb_move_query_cursor_absolute`
+        and :attr:`~curses_fzf.FuzzyFinder.kb_move_query_cursor_relative` to
+        update the cursor position.
+        """
         self.return_selection_now: bool = False
-        """Whether the fuzzyfinder should end the main loop and return the selected items."""
+        """
+        Whether the :attr:`~curses_fzf.FuzzyFinder` should end the main loop
+        and return the :attr:`~curses_fzf.FuzzyFinder.selected` items.
+        This will be set to ``True`` by
+        :meth:`~curses_fzf.FuzzyFinder.kb_accept_selection` on :kbd:`ENTER`.
+        """
         self.filtered: List[Tuple[Any, ScoringResult]] = []
-        """The list of items filtered by the current query, each paired with its scoring result."""
+        """
+        The list of items filtered by the current :attr:`~curses_fzf.FuzzyFinder.query`,
+        each paired with its :class:`~curses_fzf.ScoringResult`.
+        This list is updated by :meth:`~curses_fzf.FuzzyFinder.calculate_filtered`,
+        which is called in each iteration of the main loop before rendering the items.
+        """
         self.selected: List[Any] = []
-        """The list of currently selected items."""
+        """
+        The list of currently selected items in :attr:`~curses_fzf.FuzzyFinder.multi`
+        selection mode.
+        In single selection mode this list will be bypassed and the currently
+        highlighted item in :attr:`~curses_fzf.FuzzyFinder.filtered` list will
+        be returned on :kbd:`ENTER`.
+        """
         # keymap
         self.keymap = {
             # ARROW-UP: move cursor up 1 position in filter list
@@ -125,30 +327,48 @@ class FuzzyFinder:
             # F1: show help
             curses.KEY_F1: self.kb_show_help,  # 265
         }
-        """Dictionary mapping keys to their corresponding keybinding functions."""
+        """
+        Dictionary mapping keys (e.g. ``curses.KEY_UP``) to their corresponding
+        keybinding functions (e.g. ``lambda: self.kb_move_items_cursor_relative(-1)``).
+        If the target function takes no arguments, it can be directly assigned
+        like ``curses.KEY_F1: self.kb_show_help``.
+
+        All the functions starting with ``kb_`` are keybinding functions that
+        are used in the keymap and can also be reassigned or called directly.
+        """
 
 # properties
 
     @property
     def cursor_items(self) -> int:
         """
-        The index of the cursor inside the filtered list of items.
+        The index of the cursor inside the :attr:`~curses_fzf.FuzzyFinder.filtered`
+        list of items.
+        Use :attr:`~curses_fzf.FuzzyFinder.kb_move_items_cursor_absolute`
+        and :attr:`~curses_fzf.FuzzyFinder.kb_move_items_cursor_relative` to
+        update the cursor position.
         """
         return self._cursor_items
 
     @property
     def cursor_query(self) -> int:
         """
-        The index of the cursor inside the query string.
+        The index of the cursor inside the :attr:`~curses_fzf.FuzzyFinder.query`
+        string.
+        Use :attr:`~curses_fzf.FuzzyFinder.kb_move_query_cursor_absolute`
+        and :attr:`~curses_fzf.FuzzyFinder.kb_move_query_cursor_relative` to
+        update the cursor position.
         """
         return self._cursor_query
 
     @property
     def query(self) -> str:
         """
-        The query entered by the user or preseeded on initialization.
-        Setting this property will also reset the items cursor
-        and move the query cursor to the end of the query.
+        The :attr:`~curses_fzf.FuzzyFinder.query` entered by the user or
+        preseeded on initialization.
+        Setting this property will also reset the
+        :attr:`~curses_fzf.FuzzyFinder.cursor_items` cursor and move the
+        :attr:`~curses_fzf.FuzzyFinder.cursor_query` cursor to the end of the query.
         """
         return self._query
 
@@ -167,8 +387,27 @@ class FuzzyFinder:
              query: Optional[str] = None,
              ) -> List[Any]:
         """
-        Run the fuzzyfinder on the given list of items and return the selected
-        item(s).
+        Run the :class:`~curses_fzf.FuzzyFinder` on the given list of items
+        and return the :attr:`~curses_fzf.FuzzyFinder.selected` item(s).
+
+        Args:
+            items (List[Any]): The list of items to filter and select from.
+                This list will be stored in :attr:`~curses_fzf.FuzzyFinder.all_items`
+                and filtered based on the :attr:`~curses_fzf.FuzzyFinder.query`
+                into :attr:`~curses_fzf.FuzzyFinder.filtered` list.
+            title (Optional[str]): The :attr:`~curses_fzf.FuzzyFinder.title` to
+                display in the upper left corner of the main
+                :class:`~curses_fzf.FuzzyFinder` window.
+                Default is ``None``, in which case the title given on constructor
+                will be reused.
+            query (Optional[str]): The initial :attr:`~curses_fzf.FuzzyFinder.query`
+                to preseed the interface with.
+                Default is ``None``, in which case the query given on constructor
+                will be reused.
+                See :attr:`~curses_fzf.FuzzyFinder.query` for more details.
+
+        Returns:
+            List[Any]: The list of selected items.
         """
         self.all_items = items
         if title is not None:
@@ -194,47 +433,73 @@ class FuzzyFinder:
 
     def kb_move_items_cursor_absolute(self, position: int) -> None:
         """
-        Keybinding function:
-        Move the items cursor to the absolute position inside the filtered list
-        while keeping it within bounds of the list.
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Move the :attr:`~curses_fzf.FuzzyFinder.cursor_items` cursor to the
+        absolute :py:obj:`position` inside the :attr:`~curses_fzf.FuzzyFinder.filtered`
+        list while keeping it within bounds of the list.
+
+        Args:
+            position (int): The absolute index inside the
+                :attr:`~curses_fzf.FuzzyFinder.filtered` list to move the cursor to.
         """
         self._cursor_items = max(0, min(len(self.filtered) - 1, position))
 
     def kb_move_items_cursor_relative(self, offset: int) -> None:
         """
-        Keybinding function:
-        Move the items cursor by offset while keeping it within bounds of
-        the filtered list.
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Move the :attr:`~curses_fzf.FuzzyFinder.cursor_items` cursor by
+        :py:obj:`offset` while keeping it within bounds of the
+        :attr:`~curses_fzf.FuzzyFinder.filtered` list.
+
+        Args:
+            offset (int): The relative offset to move the cursor by inside the
+                :attr:`~curses_fzf.FuzzyFinder.filtered` list.
+                Negative values will move the cursor up, positive values will
+                move it down.
         """
         self.kb_move_items_cursor_absolute(self.cursor_items + offset)
 
     def kb_move_query_cursor_absolute(self, position: int) -> None:
         """
-        Keybinding function:
-        Move the query cursor to the absolute position inside the query string
-        while keeping it within bounds of the string.
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Move the :attr:`~curses_fzf.FuzzyFinder.cursor_query` cursor to the
+        absolute :py:obj:`position` inside the :attr:`~curses_fzf.FuzzyFinder.query`
+        string while keeping it within bounds of the string.
+
+        Args:
+            position (int): The absolute index inside the
+                :attr:`~curses_fzf.FuzzyFinder.query` string to move the cursor to.
         """
         self._cursor_query = max(0, min(len(self.query), position))
 
     def kb_move_query_cursor_relative(self, offset: int) -> None:
         """
-        Keybinding function:
-        Move the query cursor by offset while keeping it within bounds of
-        the query string.
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Move the :attr:`~curses_fzf.FuzzyFinder.cursor_query` cursor by
+        :py:obj:`offset` while keeping it within bounds of the
+        :attr:`~curses_fzf.FuzzyFinder.query` string.
+
+        Args:
+            offset (int): The relative offset to move the cursor by inside the
+                :attr:`~curses_fzf.FuzzyFinder.query` string.
+                Negative values will move the cursor left, positive values will
+                move it right.
         """
         self.kb_move_query_cursor_absolute(self.cursor_query + offset)
 
     def kb_abort_selection(self) -> None:
         """
-        Keybinding function:
-        Abort the fuzzyfinder and raise the corresponding exception.
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Abort the :class:`~curses_fzf.FuzzyFinder` and raise the
+        :class:`~curses_fzf.CursesFzfAborted` exception.
         """
         raise CursesFzfAborted("fuzzyfinder aborted by user")
 
     def kb_accept_selection(self) -> None:
         """
-        Keybinding function:
-        Accept the current selection and return it.
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Accept the current :attr:`~curses_fzf.FuzzyFinder.selection` and return it.
+        This will set :attr:`~curses_fzf.FuzzyFinder.return_selection_now` to ``True``.
         """
         # allow empty return in mutli mode but not in single mode
         if self.multi or self.filtered:
@@ -242,15 +507,20 @@ class FuzzyFinder:
 
     def kb_toggle_preview(self) -> None:
         """
-        Keybinding function:
-        Toggle the visibility of the preview window.
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Toggle the visibility of the :meth:`~curses_fzf.FuzzyFinder.show_preview`
+        window.
+        This will toggle the :attr:`~curses_fzf.FuzzyFinder.show_preview` boolean.
         """
         self.show_preview = not self.show_preview
 
     def kb_toggle_selection(self) -> None:
         """
-        Keybinding function:
-        Toggle the selection state of the current item (only in multi mode).
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Toggle the selection state of the current item (only in
+        :attr:`~curses_fzf.FuzzyFinder.multi` mode).
+        This will add/remove the item to/from
+        :attr:`~curses_fzf.FuzzyFinder.selected` list.
         """
         if self.multi and self.filtered:
             item = self.filtered[self.cursor_items][0]
@@ -261,8 +531,9 @@ class FuzzyFinder:
 
     def kb_select_all(self) -> None:
         """
-        Keybinding function:
-        Select all items from the current filter (only in multi mode).
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Select all items from the current :attr:`~curses_fzf.FuzzyFinder.filtered`
+        list (only in :attr:`~curses_fzf.FuzzyFinder.multi` mode).
         """
         if self.multi:
             for entry in self.filtered:
@@ -272,8 +543,9 @@ class FuzzyFinder:
 
     def kb_deselect_all(self) -> None:
         """
-        Keybinding function:
-        Deselect all items from the current filter (only in multi mode).
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Deselect all items from the current :attr:`~curses_fzf.FuzzyFinder.filtered`
+        list (only in :attr:`~curses_fzf.FuzzyFinder.multi` mode).
         """
         if self.multi:
             for entry in self.filtered:
@@ -283,8 +555,10 @@ class FuzzyFinder:
 
     def kb_reset_query(self) -> None:
         """
-        Keybinding function:
-        Clear the query string and return the cursor to index 0.
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Clear the :attr:`~curses_fzf.FuzzyFinder.query` string and return the
+        :attr:`~curses_fzf.FuzzyFinder.cursor_query` and
+        :attr:`~curses_fzf.FuzzyFinder.cursor_items` cursor to index ``0``.
         """
         if self.query:
             self._query = ""
@@ -293,9 +567,25 @@ class FuzzyFinder:
 
     def kb_add_to_query(self, text: str, index: int = -1) -> None:
         """
-        Keybinding function:
-        Add the given text to the query before the given index.
-        Adjust the query cursor and reset the items cursor if necessary.
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Add the given text to the :attr:`~curses_fzf.FuzzyFinder.query` before
+        the given index.
+        Adjust the :attr:`~curses_fzf.FuzzyFinder.cursor_query` cursor and reset
+        the :attr:`~curses_fzf.FuzzyFinder.cursor_items` cursor if necessary.
+
+        May raise :class:`~curses_fzf.CursesFzfIndexOutOfBounds` if the given
+        index is out of bounds.
+
+        Args:
+            text (str): The text to add to the :attr:`~curses_fzf.FuzzyFinder.query`
+                string.
+            index (int): The index before which to add the text in the
+                :attr:`~curses_fzf.FuzzyFinder.query` string.
+                The default is ``-1``, which means to add the text at the end of
+                the :attr:`~curses_fzf.FuzzyFinder.query` string.
+                The index may also be negative, in which case it will be counted
+                from the end of the string (e.g. ``-1`` means before the last
+                character, ``-2`` means before the second last character, etc.).
         """
         if index < 0:
             index = len(self.query) + index + 1
@@ -315,21 +605,39 @@ class FuzzyFinder:
 
     def kb_add_to_query_cursor(self, text: str) -> None:
         """
-        Keybinding function:
-        Add the given text to the query at the current query cursor position.
-        Adjust the query cursor and reset the items cursor if necessary.
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Add the given text to the query at the current
+        :attr:`~curses_fzf.FuzzyFinder.cursor_query` cursor position.
+        Adjust the :attr:`~curses_fzf.FuzzyFinder.cursor_query` cursor and
+        reset the :attr:`~curses_fzf.FuzzyFinder.cursor_items` cursor if necessary.
+
+        Args:
+            text (str): The text to add to the :attr:`~curses_fzf.FuzzyFinder.query`
+                string.
         """
         self.kb_add_to_query(text, self.cursor_query)
 
     def kb_remove_from_query(self, index: int = -1, length: int = 1) -> None:
         """
-        Keybinding function:
-        Remove <length> characters from the query at position <index>
-        and return the item cursor to index 0.
-        The query cursor will be adjusted if it is after the remove index.
-        The index may also be negative, the default is -1 (last character).
-        The length may be higher than the actual length of the query,
-        but not negative.
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Remove :py:obj:`length` characters from the query at position
+        :py:obj:`index` and return the :attr:`~curses_fzf.FuzzyFinder.cursor_items`
+        cursor to index ``0``.
+        The :attr:`~curses_fzf.FuzzyFinder.cursor_query` cursor will be adjusted
+        if it is after the remove index.
+
+        Args:
+            index (int): The index at which to remove characters from the
+                :attr:`~curses_fzf.FuzzyFinder.query` string.
+                The default is ``-1``, which means to remove the character before
+                the end of the :attr:`~curses_fzf.FuzzyFinder.query` string.
+                The index may also be negative, in which case it will be counted
+                from the end of the string (e.g. ``-1`` means the last character,
+                ``-2`` means the second last character, etc.).
+            length (int): The number of characters to remove from the
+                :attr:`~curses_fzf.FuzzyFinder.query` string starting from the
+                given index. The default is ``1``. The length may be higher than the
+                actual length of the query, but not negative.
         """
         if index < 0:
             index = len(self.query) + index
@@ -354,11 +662,18 @@ class FuzzyFinder:
 
     def kb_remove_from_query_cursor(self, before: bool = True) -> None:
         """
-        Keybinding function:
-        Remove one character from the query before query cursor position
-        and return the item cursor to index 0.
-        The query cursor will be adjusted.
-        If <before> is true this will behave like BACKSPACE, otherwise like DEL.
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Remove one character from the :attr:`~curses_fzf.FuzzyFinder.query`
+        before :attr:`~curses_fzf.FuzzyFinder.cursor_query` cursor position
+        and return the :attr:`~curses_fzf.FuzzyFinder.cursor_items` cursor to
+        index ``0``.
+        The :attr:`~curses_fzf.FuzzyFinder.cursor_query` cursor will be adjusted.
+
+        Args:
+            before (bool): Whether to remove the character before the query cursor
+                (like :kbd:`BACKSPACE`) or the character at the query cursor
+                (like :kbd:`DEL`).
+                Default is ``True``.
         """
         pos = self.cursor_query
         out_of_bounds = False
@@ -373,18 +688,23 @@ class FuzzyFinder:
 
     def kb_show_help(self) -> None:
         """
-        Keybinding function:
-        Show the help screen.
+        :attr:`~curses_fzf.FuzzyFinder.keymap` function:
+        Show the help screen, using :kbd:`F1` key.
         """
         if self.stdscr:
             _help(self.stdscr, self.page_size, self.color_theme)
 
 # loop functions
 
-    def _calculate_filtered(self) -> None:
+    def calculate_filtered(self) -> None:
         """
-        Calculate the filtered list of items based on the current query
-        and scoring function.
+        Calculate the :attr:`~curses_fzf.FuzzyFinder.filtered` list of items
+        from the :attr:`~curses_fzf.FuzzyFinder.all_items` list
+        based on the current :attr:`~curses_fzf.FuzzyFinder.query`
+        and :attr:`~curses_fzf.FuzzyFinder.score` function.
+
+        This function will be called in each iteration of the main loop of
+        :class:`~curses_fzf.FuzzyFinder` before rendering the items.
         """
         self.filtered = sorted(
             [
@@ -559,14 +879,14 @@ class FuzzyFinder:
 
     def _main_loop(self, stdscr: curses.window) -> List[Any]:
         self.stdscr = stdscr
-        self._calculate_filtered()
+        self.calculate_filtered()
         autoreturn_value = self._autoreturn()
         if autoreturn_value is not None:
             return autoreturn_value
         self._calculate_preselection()
         _init_curses()
         while True:
-            self._calculate_filtered()
+            self.calculate_filtered()
             # prepare window content
             height, width = _base_window(
                 self.stdscr,

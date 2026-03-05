@@ -560,7 +560,7 @@ def test_query():
 def test_calculate_filtered():
     fzf = FuzzyFinder(query="app")
     fzf.all_items = ["apple", "banana", "orange"]
-    fzf._calculate_filtered()
+    fzf.calculate_filtered()
     assert len(fzf.filtered) == 1
     assert fzf.filtered[0][0] == "apple"
     assert fzf.filtered[0][1].score > 0

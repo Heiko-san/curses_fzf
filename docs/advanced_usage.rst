@@ -99,8 +99,6 @@ See :class:`~curses_fzf.ColorTheme` for information on coloring, the selected
 
 See `examples`_ folder for more detailed code snippets.
 
-.. _examples: https://github.com/Heiko-san/curses_fzf/blob/main/examples/dict_items_with_simple_preview_and_preselect.py
-
 Not only the :py:obj:`item` from :attr:`~curses_fzf.FuzzyFinder.filtered` list
 is provided, but also the :class:`~curses_fzf.ScoringResult`.
 This allows to display scoring related information.
@@ -116,3 +114,75 @@ you can toggle the preview window any time using :kbd:`Ctrl + P`.
     :alt: Image: curses preview with scoring information
     :align: center
     :target: https://github.com/Heiko-san/curses_fzf/blob/main/examples/curses_preview_with_score_displayed.py
+
+Scoring Function
+----------------
+
+.. code-block:: python
+
+    from typing import Any
+    from curses_fzf import FuzzyFinder, ScoringResult
+
+    def my_scoring(query: str, candidate: str) -> ScoringResult:
+        sr = ScoringResult(query, candidate)
+        # ... scoring logic
+        sr.score = 100
+        # ...
+        return sr
+
+    fzf = FuzzyFinder(score=my_scoring)
+    result = fzf.find(data)
+
+:class:`~curses_fzf.FuzzyFinder` comes with built-in scoring functions
+(default :meth:`~curses_fzf.scoring_full_words`).
+Scoring determines if an item is considered to match the
+:attr:`~curses_fzf.FuzzyFinder.query` the user entered.
+The higher the score the higher the item gets sorted among the matches in the
+:attr:`~curses_fzf.FuzzyFinder.filtered` list.
+If the score is ``0`` the item is considered to not be a match,
+it will not be displayed in the list at all.
+
+A scoring function retrieves the :attr:`~curses_fzf.ScoringResult.query` as its
+first argument and the :attr:`~curses_fzf.ScoringResult.candidate` to match as
+the second.
+The :attr:`~curses_fzf.ScoringResult.candidate` is the
+:meth:`~curses_fzf.FuzzyFinder.display` string of the item in question.
+
+The function is supposed to return a :class:`~curses_fzf.ScoringResult`.
+
+See `examples`_ folder for more detailed code snippets.
+
+ColorTheme Customization
+------------------------
+
+.. code-block:: python
+
+    from curses_fzf import FuzzyFinder, ColorTheme, Color
+
+    fzf = FuzzyFinder(color_theme=ColorTheme(text=Color.CYAN))
+    result = fzf.find(data)
+
+:class:`~curses_fzf.ColorTheme` can be used to customize text colors,
+e.g. to increase readability.
+Use the indexes defined via :class:`~curses_fzf.Color` enum.
+If you want to register your own :py:obj:`curses.color_pairs`,
+the indexes ``1`` to ``29`` are safe to use.
+
+Keymap And More
+---------------
+
+.. code-block:: python
+
+    import curses
+    from curses_fzf import FuzzyFinder
+
+    fzf = FuzzyFinder()
+    fzf.keymap[curses.KEY_F2] = lambda: fzf.kb_move_items_cursor_relative(2)
+    result = fzf.find(data)
+
+:class:`~curses_fzf.FuzzyFinder` is designed to be highly customizable.
+
+See `examples`_ folder for more detailed code snippets,
+e.g. on how to define your own keyboard actions.
+
+.. _examples: https://github.com/Heiko-san/curses_fzf/blob/main/examples
