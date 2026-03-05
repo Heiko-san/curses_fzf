@@ -47,7 +47,7 @@ def test_init_curses():
         mock_curs_set.assert_called_with(0)
         mock_start_color.assert_called_once()
         mock_use_default_colors.assert_called_once()
-        assert mock_init_pair.call_count == 18
+        assert mock_init_pair.call_count == 22
         mock_init_pair.assert_any_call(Color.BLACK, curses.COLOR_BLACK, -1)
         mock_init_pair.assert_any_call(Color.RED, curses.COLOR_RED, -1)
         mock_init_pair.assert_any_call(Color.GREEN, curses.COLOR_GREEN, -1)
@@ -63,6 +63,10 @@ def test_init_curses():
         mock_init_pair.assert_any_call(Color.BLACK_ON_MAGENTA, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
         mock_init_pair.assert_any_call(Color.BLACK_ON_CYAN, curses.COLOR_BLACK, curses.COLOR_CYAN)
         mock_init_pair.assert_any_call(Color.BLACK_ON_WHITE, curses.COLOR_BLACK, curses.COLOR_WHITE)
+        mock_init_pair.assert_any_call(Color.WHITE_ON_BLACK, curses.COLOR_WHITE, curses.COLOR_BLACK)
         mock_init_pair.assert_any_call(Color.WHITE_ON_RED, curses.COLOR_WHITE, curses.COLOR_RED)
+        mock_init_pair.assert_any_call(Color.WHITE_ON_GREEN, curses.COLOR_WHITE, curses.COLOR_GREEN)
+        mock_init_pair.assert_any_call(Color.WHITE_ON_YELLOW, curses.COLOR_WHITE, curses.COLOR_YELLOW)
         mock_init_pair.assert_any_call(Color.WHITE_ON_BLUE, curses.COLOR_WHITE, curses.COLOR_BLUE)
         mock_init_pair.assert_any_call(Color.WHITE_ON_MAGENTA, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
+        mock_init_pair.assert_any_call(Color.WHITE_ON_CYAN, curses.COLOR_WHITE, curses.COLOR_CYAN)

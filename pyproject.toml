@@ -41,7 +41,7 @@ classifiers = [
 
 [project.urls]
 Changelog = "https://github.com/Heiko-san/curses_fzf/blob/main/CHANGELOG.md"
-Documentation = "https://github.com/Heiko-san/curses_fzf/blob/main/README.md"
+Documentation = "https://curses-fzf.readthedocs.io/"
 Examples = "https://github.com/Heiko-san/curses_fzf/tree/main/examples"
 Homepage = "https://github.com/Heiko-san/curses_fzf"
 Issues = "https://github.com/Heiko-san/curses_fzf/issues"
@@ -54,6 +54,9 @@ dev = [
     "flake8>=7",
     "build>=1",
     "twine>=6",
+    "sphinx>=7",
+    "myst-parser>=3",
+    "sphinx-rtd-theme>=3",
     "pyyaml>=6",
 ]
 

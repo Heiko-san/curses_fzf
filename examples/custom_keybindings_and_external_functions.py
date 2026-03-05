@@ -9,7 +9,7 @@ def select_random_item_with_for(fzf: FuzzyFinder) -> None:
     Set query to "for" and select a random item from the filtered list.
     """
     fzf.query = "for"
-    fzf._calculate_filtered()
+    fzf.calculate_filtered()
     fzf.kb_move_items_cursor_absolute(random.randrange(len(fzf.filtered)))
 
 
