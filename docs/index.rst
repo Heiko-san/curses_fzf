@@ -10,6 +10,7 @@ Welcome to curses-fzf's documentation!
    :maxdepth: 2
    :caption: User Guide
 
+   readme_link
    install
    basic_usage
    advanced_usage
