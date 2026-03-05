@@ -7,7 +7,10 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 
+import os
+import sys
 from datetime import date
+sys.path.insert(0, os.path.abspath("../src"))
 import curses_fzf
 
 first_release_year = "2026"
