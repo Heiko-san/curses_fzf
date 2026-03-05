@@ -20,7 +20,7 @@ Minimal Example
 In this minimal example, you can select a single item from a list of strings
 using :class:`~curses_fzf.FuzzyFinder`.
 Accept an entry using the :kbd:`ENTER` key or cancel the selection using the
-:kbd:`ESC` key or :kbd:`Ctrl + C`.
+:kbd:`ESC` key or :kbd:`Ctrl+C`.
 Use :kbd:`F1` to toggle the help screen, which shows all available key bindings.
 Since in single selection mode it is not possible to select no item, there is
 either exactly one item in the resulting list or the selection process was
@@ -76,7 +76,7 @@ sorted by match :attr:`~curses_fzf.ScoringResult.score` (see
 The :attr:`~curses_fzf.FuzzyFinder.query` can also be pre-seeded with a given
 string.
 The user is still able to fully modify the :attr:`~curses_fzf.FuzzyFinder.query`,
-including completely clearing it (:kbd:`Ctrl + K`).
+including completely clearing it (:kbd:`Ctrl+K`).
 The parameter :attr:`~curses_fzf.FuzzyFinder.query` can be given to
 :class:`~curses_fzf.FuzzyFinder` constructor or the object's
 :meth:`~curses_fzf.FuzzyFinder.find` method.

@@ -107,7 +107,7 @@ You can use :attr:`~curses_fzf.FuzzyFinder.preview_window_percentage` parameter
 of :class:`~curses_fzf.FuzzyFinder` to define the width of the preview window.
 The default value is ``40`` percent of the terminal window.
 Don't worry that the preview window might hide portions of your items,
-you can toggle the preview window any time using :kbd:`Ctrl + P`.
+you can toggle the preview window any time using :kbd:`Ctrl+P`.
 
 .. image:: _static/curses_preview.png
     :width: 100%

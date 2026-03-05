@@ -10,7 +10,7 @@ class CursesFzfException(Exception):
 class CursesFzfAborted(CursesFzfException):
     """
     Exception raised when :class:`~curses_fzf.FuzzyFinder` is aborted by the user
-    (e.g. by pressing :kbd:`Ctrl + C` or :kbd:`ESC`).
+    (e.g. by pressing :kbd:`Ctrl+C` or :kbd:`ESC`).
     """
     pass
 

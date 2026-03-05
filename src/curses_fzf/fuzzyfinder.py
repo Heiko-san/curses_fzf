@@ -171,7 +171,7 @@ class FuzzyFinder:
         :attr:`~curses_fzf.FuzzyFinder.filtered` list.
         :attr:`~curses_fzf.FuzzyFinder.preview_window_percentage` defines the
         width of the preview window as a percentage of the total width.
-        The preview window can be toggled with :kbd:`Ctrl + P`.
+        The preview window can be toggled with :kbd:`Ctrl+P`.
 
         The :meth:`~curses_fzf.FuzzyFinder.preview` function can be used in two ways:
 
@@ -242,7 +242,7 @@ class FuzzyFinder:
         self.show_preview: bool = True
         """
         Show or hide the preview window.
-        This can be toggled with :kbd:`Ctrl + P` if a
+        This can be toggled with :kbd:`Ctrl+P` if a
         :meth:`~curses_fzf.FuzzyFinder.preview` function is provided.
         It will be set by :meth:`~curses_fzf.FuzzyFinder.kb_toggle_preview`.
         """
