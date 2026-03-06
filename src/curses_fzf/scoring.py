@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Optional, Tuple
+from typing import Optional, List, Tuple, Set
 
 RE_WORD = re.compile(r"\S+")
 
@@ -33,45 +33,54 @@ class ScoringResult():
             from the :attr:`FuzzyFinder.all_items` list.
     """
 
+    SEPARATORS: Set[str] = set(" \t/\\_-.:;|,()[]{}<>\"'`")
+    """
+    A set of characters that commonly indicate "word boundaries" in generic text
+    and paths.
+    Those are chosen similarly to fzf's original heuristics.
+    """
+
     def __init__(self, query: str, candidate: str) -> None:
-        self.query = query
+        self.query: str = query
         """
         The original query string parameter as given to the constructor.
         This is the :attr:`FuzzyFinder.query` string entered by the user.
         """
 
-        self.query_lower = query.lower()
+        self.query_lower: str = query.lower()
         """
         The :attr:`~ScoringResult.query` string converted to lowercase.
         """
 
-        self.query_words_with_index = [(m.group(), m.start()) for m in RE_WORD.finditer(self.query_lower)]
+        self.query_words_with_index: List[Tuple[str, int]] = [
+            (m.group(), m.start()) for m in RE_WORD.finditer(self.query_lower)]
         """
         The :attr:`~ScoringResult.query_lower` string split on whitespaces.
         Each element is a tuple with the word and its starting index in the
         original :attr:`~ScoringResult.query` string.
         """
 
-        self.candidate = candidate
+        self.candidate: str = candidate
         """
         The original candidate string parameter as given to the constructor.
         This is a single item's :meth:`~FuzzyFinder.display` representation from
         the :attr:`FuzzyFinder.all_items` list.
         """
 
-        self.candidate_lower = candidate.lower()
+        self.candidate_lower: str = candidate.lower()
         """
         The :attr:`~ScoringResult.candidate` string converted to lowercase.
         """
 
-        self.candidate_words_with_index = [(m.group(), m.start()) for m in RE_WORD.finditer(self.candidate_lower)]
+        self.candidate_words_with_index: List[Tuple[str, int]] = [
+            (m.group(), m.start()) for m in RE_WORD.finditer(self.candidate_lower)]
         """
         The :attr:`~ScoringResult.candidate_lower` string split on whitespaces.
         Each element is a tuple with the word and its starting index in the
         original :attr:`~ScoringResult.candidate` string.
         """
 
-        self.score = 0
+        self.score: int = 0
         """
         The resulting fuzzy score.
         This is the field that :class:`~curses_fzf.FuzzyFinder` will take into
@@ -82,7 +91,7 @@ class ScoringResult():
         but feel free to directly manipulate this field as your scoring logic requires.
         """
 
-        self.matches = []
+        self.matches: List[Tuple[int, str]] = []
         """
         A list of tuples representing each substring match of the :attr:`~ScoringResult.query`
         in the :attr:`~ScoringResult.candidate` string.
@@ -93,7 +102,7 @@ class ScoringResult():
         but feel free to directly manipulate this field as your scoring logic requires.
         """
 
-        self._already_matched_words = set()
+        self._already_matched_words: Set[int] = set()
         """
         A set of indices of candidate words that have already been matched to a query word.
         """
@@ -198,6 +207,75 @@ class ScoringResult():
         return (best_match[0], best_match[1], match_position_in_word,
                 int(100 * len(word) / length_matched_word))
 
+    def is_boundary(self, position: int) -> bool:
+        """
+        Check if the given position in the :attr:`~ScoringResult.candidate`
+        string is a boundary.
+
+        A boundary is defined as:
+
+        - the beginning of the string
+        - a position after a separator character (space, tab, slash, dash, dot, etc.)
+        - a camelCase transition (lowercase followed by uppercase)
+        - an alpha<->digit transition
+
+        Those criteria are chosen similarly to fzf's original heuristics.
+
+        Args:
+            position (int): The index in the :attr:`~ScoringResult.candidate`
+                string to check.
+
+        Returns:
+            bool: ``True`` if the position is a boundary, ``False`` otherwise.
+        """
+        if position <= 0:
+            return True
+        prev = self.candidate[position - 1]
+        cur = self.candidate[position]
+        if prev in self.SEPARATORS:
+            return True
+        if prev.islower() and cur.isupper():
+            return True
+        if prev.isalpha() and cur.isdigit():
+            return True
+        if prev.isdigit() and cur.isalpha():
+            return True
+        return False
+
+    def check_query_empty(self) -> bool:
+        """
+        Check if the :attr:`~ScoringResult.query` string is empty.
+        If it is empty, the score is set to ``100`` to keep all items in the
+        original order.
+
+        Returns:
+            bool: ``True`` if the :attr:`~ScoringResult.query` string is empty,
+                ``False`` otherwise.
+        """
+        if not self.query:
+            self.score = 100
+            return True
+        return False
+
+    def merge_positions_to_substrings(self, positions: List[int]) -> List[Tuple[int, str]]:
+        """
+        Convert matched character positions to (start, substring) tuples for
+        :meth:`~ScoringResult.add_match` or :attr:`~ScoringResult.matches`.
+        Example: positions [3,4,5, 10,11] -> [(3, candidate[3:6]), (10, candidate[10:12])]
+        """
+        if not positions:
+            return []
+        result = []
+        start = prev = positions[0]
+        for position in positions[1:]:
+            if position == prev + 1:
+                prev = position
+                continue
+            result.append((start, self.candidate[start:prev + 1]))
+            start = prev = position
+        result.append((start, self.candidate[start:prev + 1]))
+        return result
+
 
 def scoring_full_words(query: str, candidate: str) -> ScoringResult:
     """
@@ -214,19 +292,16 @@ def scoring_full_words(query: str, candidate: str) -> ScoringResult:
     The query words may appear in the candidate in any order, however if the
     original order is found a small bonus will be granted.
     """
-    result = ScoringResult(query, candidate)
-    # before any query is entered we consider all candidates equal and
-    # therefore also keep the original order
-    if not query:
-        result.score = 100
-        return result
+    sr = ScoringResult(query, candidate)
+    if sr.check_query_empty():
+        return sr
 
-    for q_word, q_word_index in result.query_words_with_index:
-        best_match = result.find_best_word_match(q_word)
+    for q_word, q_word_index in sr.query_words_with_index:
+        best_match = sr.find_best_word_match(q_word)
         # all query words need to find a match to keep the candidate
         if best_match is None:
-            result.score = 0
-            return result
+            sr.score = 0
+            return sr
 
         match_position_in_candidate = best_match[1] + best_match[2]
         # score is the word match percentage multiplied by a bonus if the
@@ -234,16 +309,68 @@ def scoring_full_words(query: str, candidate: str) -> ScoringResult:
         score = best_match[3]
         if best_match[2] == 0:
             score *= 1.5
-        result.add_match(match_position_in_candidate, q_word, int(score))
+        sr.add_match(match_position_in_candidate, q_word, int(score))
 
     # small bonus if all matches are in the exact order of the query
-    if all(result.matches[i][0] < result.matches[i+1][0] for i in
-            range(len(result.matches) - 1)):
-        result.score = int(result.score * 1.2)
+    if all(sr.matches[i][0] < sr.matches[i+1][0] for i in
+            range(len(sr.matches) - 1)):
+        sr.score = int(sr.score * 1.2)
 
     # normalize the score by the number of matches (= number of query words)
-    result.score = int(result.score / len(result.matches))
-    return result
+    sr.score = int(sr.score / len(sr.matches))
+    return sr
 
 
-# TODO provide more scoring functions with different behavior
+def scoring_fzf(query: str, candidate: str) -> ScoringResult:
+    """
+    A fzf-like fuzzy scoring.
+    The :attr:`~ScoringResult.query` characters are matched as a subsequence
+    against the :attr:`~ScoringResult.candidate` (characters must appear in order).
+    There are bonuses for consecutive matches, matches on boundaries and matches
+    early in the candidate.
+    There are penalties for large gaps between matched characters.
+    Matched ranges are highlighted via :attr:`~ScoringResult.matches`.
+    """
+    sr = ScoringResult(query, candidate)
+    if sr.check_query_empty():
+        return sr
+    # find match positions of all query characters (greedy forward scan)
+    positions: List[int] = []
+    search_start_index = 0
+    for query_char in sr.query_lower:
+        found = sr.candidate_lower.find(query_char, search_start_index)
+        if found < 0:
+            sr.score = 0
+            return sr
+        positions.append(found)
+        search_start_index = found + 1
+    # calculate score using fzf-like heuristics
+    sr.score = 0
+    EARLY_BONUS_MAX = 20   # bonus for early first match
+    CONTIGUOUS_BONUS = 30  # bonus if query is found as a contiguous substring
+    BASE_MATCH = 8         # base points per matched char
+    BOUNDARY_BONUS = 14    # extra points when match begins at a boundary
+    CONSEC_BONUS = 18      # extra points for consecutive chars
+    GAP_PENALTY = 3        # penalty per gap char between matches
+    sr.score += max(0, EARLY_BONUS_MAX - positions[0])
+    contiguous = all(positions[i] + 1 == positions[i + 1] for i in range(len(positions) - 1))
+    if contiguous:
+        sr.score += CONTIGUOUS_BONUS
+    for index, position in enumerate(positions):
+        sr.score += BASE_MATCH
+        if sr.is_boundary(position):
+            sr.score += BOUNDARY_BONUS
+        if index > 0:
+            prev = positions[index - 1]
+            if position == prev + 1:
+                sr.score += CONSEC_BONUS
+            else:
+                gap = position - prev - 1
+                sr.score -= GAP_PENALTY * gap
+    # calculate matched substrings for highlighting
+    sr.matches = sr.merge_positions_to_substrings(positions)
+    # if gaps result in negative score, set to 1 to not filter them out,
+    # but sort them below all positive-scoring matches
+    if sr.score <= 0:
+        sr.score = 1
+    return sr
