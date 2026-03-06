@@ -1,6 +1,7 @@
 # curses-fzf
 
-[![codecov](https://codecov.io/github/Heiko-san/curses_fzf/graph/badge.svg?token=8JFSFIFJ3K)](https://codecov.io/github/Heiko-san/curses_fzf) [![documentation](https://readthedocs.org/projects/curses-fzf/badge/?version=latest)](https://curses-fzf.readthedocs.io/en/latest/?badge=latest)
+[![codecov](https://codecov.io/github/Heiko-san/curses_fzf/graph/badge.svg?token=8JFSFIFJ3K)](https://codecov.io/github/Heiko-san/curses_fzf) [![documentation](https://readthedocs.org/projects/curses-fzf/badge/?version=latest)](https://curses-fzf.readthedocs.io/en/latest/?badge=latest) [![PyPI](https://img.shields.io/pypi/v/curses-fzf.svg)](https://pypi.org/project/curses-fzf/)
+
 
 ## About
 
