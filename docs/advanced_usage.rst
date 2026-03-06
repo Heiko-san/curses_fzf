@@ -33,6 +33,10 @@ The default behavior is to stringify the item provided:
 
     FuzzyFinder(display=lambda item: str(item))
 
+Related examples:
+
+- `dict_items_with_simple_preview_and_preselect.py`_
+
 Preselect Function
 ------------------
 
@@ -53,6 +57,10 @@ selection mode, you can pre-select some items using the
 This function is expected to return ``True`` if the item should be selected.
 
 The default implementation always returns ``False``.
+
+Related examples:
+
+- `dict_items_with_simple_preview_and_preselect.py`_
 
 .. image:: _static/multi_preview.png
     :width: 100%
@@ -97,8 +105,6 @@ See :class:`~curses_fzf.ColorTheme` for information on coloring, the selected
 :attr:`~curses_fzf.FuzzyFinder.color_theme` is also provided to the
 :meth:`~curses_fzf.FuzzyFinder.preview` function for easy access.
 
-See `examples`_ folder for more detailed code snippets.
-
 Not only the :py:obj:`item` from :attr:`~curses_fzf.FuzzyFinder.filtered` list
 is provided, but also the :class:`~curses_fzf.ScoringResult`.
 This allows to display scoring related information.
@@ -108,6 +114,11 @@ of :class:`~curses_fzf.FuzzyFinder` to define the width of the preview window.
 The default value is ``40`` percent of the terminal window.
 Don't worry that the preview window might hide portions of your items,
 you can toggle the preview window any time using :kbd:`Ctrl+P`.
+
+Related examples:
+
+- `dict_items_with_simple_preview_and_preselect.py`_
+- `curses_preview_with_score_displayed.py`_
 
 .. image:: _static/curses_preview.png
     :width: 100%
@@ -150,7 +161,10 @@ The :attr:`~curses_fzf.ScoringResult.candidate` is the
 
 The function is supposed to return a :class:`~curses_fzf.ScoringResult`.
 
-See `examples`_ folder for more detailed code snippets.
+Related examples:
+
+- `custom_scoring_and_color_theme.py`_
+- `curses_preview_with_score_displayed.py`_
 
 ColorTheme Customization
 ------------------------
@@ -168,6 +182,11 @@ Use the indexes defined via :class:`~curses_fzf.Color` enum.
 If you want to register your own :py:obj:`curses.color_pairs`,
 the indexes ``1`` to ``29`` are safe to use.
 
+Related examples:
+
+- `custom_scoring_and_color_theme.py`_
+- `curses_preview_with_score_displayed.py`_
+
 Keymap And More
 ---------------
 
@@ -182,7 +201,18 @@ Keymap And More
 
 :class:`~curses_fzf.FuzzyFinder` is designed to be highly customizable.
 
-See `examples`_ folder for more detailed code snippets,
-e.g. on how to define your own keyboard actions.
+For example you can define your own keybindings by modifying the
+:attr:`~curses_fzf.FuzzyFinder.keymap` dictionary.
+The keys are the key codes as returned by :py:obj:`curses.getch()`,
+the values are functions that will be called when the corresponding key is
+pressed.
 
-.. _examples: https://github.com/Heiko-san/curses_fzf/blob/main/examples
+Related examples:
+
+- `custom_keybindings_and_external_functions.py`_
+
+
+.. _custom_keybindings_and_external_functions.py: https://github.com/Heiko-san/curses_fzf/blob/main/examples/custom_keybindings_and_external_functions.py
+.. _custom_scoring_and_color_theme.py: https://github.com/Heiko-san/curses_fzf/blob/main/examples/custom_scoring_and_color_theme.py
+.. _curses_preview_with_score_displayed.py: https://github.com/Heiko-san/curses_fzf/blob/main/examples/curses_preview_with_score_displayed.py
+.. _dict_items_with_simple_preview_and_preselect.py: https://github.com/Heiko-san/curses_fzf/blob/main/examples/dict_items_with_simple_preview_and_preselect.py
