@@ -367,9 +367,9 @@ def scoring_fzf(query: str, candidate: str) -> ScoringResult:  # noqa: C901
         sr.score = 0
         return sr
     MATCH_BASE_SCORE = 100  # starting score if query matches (once)
-    BOUNDARY_MATCH_WEIGHT = 8.0   # bonus factor for matches on boundaries
-    EARLY_MATCH_WEIGHT = 5.0      # bonus factor for early matches
-    WORD_COVERAGE_WEIGHT = 10.0    # bonus factor for word coverage
+    BOUNDARY_MATCH_WEIGHT = 8.0  # bonus factor for matches on boundaries
+    EARLY_MATCH_WEIGHT = 5.0  # bonus factor for early matches
+    WORD_COVERAGE_WEIGHT = 10.0  # bonus factor for word coverage
     # find the longest matching subsequences of the query in the candidate in
     # original order, every match gets a fixed base score to beginn with
     query = sr.query_lower

@@ -136,8 +136,10 @@ Scoring Function
 
     def my_scoring(query: str, candidate: str) -> ScoringResult:
         sr = ScoringResult(query, candidate)
+        if sr.check_query_empty():
+            return sr
         # ... scoring logic
-        sr.score = 100
+        sr.add_match(match_index, matched_word, match_score)
         # ...
         return sr
 
