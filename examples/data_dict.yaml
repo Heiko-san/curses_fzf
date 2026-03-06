@@ -1,0 +1,121 @@
+meals:
+  - available: true
+    calories: 450
+    id: 1
+    name: apple pie
+    price: 4.99
+    tags:
+      - sweet
+      - fruit
+  - available: true
+    calories: 680
+    id: 2
+    name: banana split
+    price: 6.5
+    tags:
+      - sweet
+      - cold
+  - available: true
+    calories: 620
+    id: 3
+    name: beef stroganoff
+    price: 12.99
+    tags:
+      - savory
+      - meat
+  - available: true
+    calories: 320
+    id: 4
+    name: vegetable stir-fry
+    price: 8.75
+    tags:
+      - vegan
+      - quick
+  - available: false
+    calories: 520
+    id: 5
+    name: chocolate lava cake
+    price: 7.25
+    tags:
+      - sweet
+      - chocolate
+  - available: true
+    calories: 280
+    id: 6
+    name: caesar salad
+    price: 9.5
+    tags:
+      - healthy
+      - salad
+  - available: true
+    calories: 410
+    id: 7
+    name: mushroom risotto
+    price: 11.25
+    tags:
+      - vegetarian
+      - creamy
+  - available: true
+    calories: 380
+    id: 8
+    name: grilled salmon
+    price: 15.99
+    tags:
+      - fish
+      - healthy
+  - available: true
+    calories: 720
+    id: 9
+    name: pasta carbonara
+    price: 10.75
+    tags:
+      - pasta
+      - creamy
+  - available: true
+    calories: 490
+    id: 10
+    name: lemon cheesecake
+    price: 5.99
+    tags:
+      - sweet
+      - citrus
+  - available: false
+    calories: 550
+    id: 11
+    name: chicken curry
+    price: 13.5
+    tags:
+      - spicy
+      - indian
+  - available: true
+    calories: 360
+    id: 12
+    name: french fries
+    price: 3.99
+    tags:
+      - side
+      - crispy
+  - available: true
+    calories: 460
+    id: 13
+    name: tiramisu
+    price: 6.75
+    tags:
+      - coffee
+      - dessert
+  - available: true
+    calories: 420
+    id: 14
+    name: falafel wrap
+    price: 7.99
+    tags:
+      - vegan
+      - streetfood
+  - available: true
+    calories: 680
+    id: 15
+    name: steak sandwich
+    price: 14.5
+    tags:
+      - meat
+      - sandwich

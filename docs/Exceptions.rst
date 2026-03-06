@@ -9,7 +9,7 @@ exceptions raised by :class:`~curses_fzf.FuzzyFinder` in a unified way.
 
 The most important exception is :class:`~curses_fzf.CursesFzfAborted`,
 which indicates that the user has aborted the selection process
-(typically by pressing :kbd:`Ctrl + C` or :kbd:`ESC`).
+(typically by pressing :kbd:`Ctrl+C` or :kbd:`ESC`).
 
 Exception Reference
 -------------------
@@ -25,9 +25,3 @@ Exception Reference
 
 .. autoclass:: curses_fzf.CursesFzfIndexOutOfBounds
    :show-inheritance:
-
-Exception Tree
---------------
-
-.. inheritance-diagram:: curses_fzf.errors
-   :parts: 1

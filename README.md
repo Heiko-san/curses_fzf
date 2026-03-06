@@ -50,4 +50,4 @@ else:
         print(item)
 ```
 
-See [documentation](https://curses-fzf.readthedocs.io) for further details.
+See [documentation - basic usage](https://curses-fzf.readthedocs.io/en/latest/basic_usage.html) for further details.

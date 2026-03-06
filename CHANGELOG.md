@@ -2,7 +2,17 @@
 
 All versions below are listed in reverse chronological order.
 
-## [0.2.3](https://github.com/Heiko-san/curses_fzf/releases/tag/0.2.2) (2026-03-03)
+## [0.2.4](https://github.com/Heiko-san/curses_fzf/releases/tag/0.2.4) (2026-03-06)
+
+### Added
+
+- Added scoring_fzf scoring function.
+
+### Changed
+
+- Changed default scoring function to scoring_fzf.
+
+## [0.2.3](https://github.com/Heiko-san/curses_fzf/releases/tag/0.2.3) (2026-03-05)
 
 ### Changed
 

@@ -1,5 +1,5 @@
 import pytest
-from curses_fzf import ScoringResult, scoring_full_words
+from curses_fzf import ScoringResult, scoring_fzf, scoring_full_words
 
 
 @pytest.fixture
@@ -9,7 +9,7 @@ def fox():
 
 @pytest.fixture
 def banana():
-    return ScoringResult("app", "BaNaNa")
+    return ScoringResult("app", "BaNaNaR4ma")
 
 
 @pytest.fixture
@@ -17,22 +17,32 @@ def henry():
     return ScoringResult("me", "Henry is at home and watches a snowman melt slowly.")
 
 
+@pytest.fixture
+def empty():
+    return ScoringResult("", "Henry is at home and watches a snowman melt slowly.")
+
+
+@pytest.fixture
+def gap():
+    return ScoringResult("hx", "Henry is at home and watches a snowman melt slowly x.")
+
+
 def test_scoringresult_init(fox, banana):
     assert fox.query == "fox bro"
     assert fox.candidate == "The quick brown fox jumps over the lazy dog and lands elegantly on the meadow."
     assert banana.query == "app"
-    assert banana.candidate == "BaNaNa"
+    assert banana.candidate == "BaNaNaR4ma"
     assert fox.query_lower == "fox bro"
     assert fox.candidate_lower == "the quick brown fox jumps over the lazy dog and lands elegantly on the meadow."
     assert banana.query_lower == "app"
-    assert banana.candidate_lower == "banana"
+    assert banana.candidate_lower == "bananar4ma"
     assert fox.query_words_with_index == [('fox', 0), ('bro', 4)]
     assert banana.query_words_with_index == [("app", 0)]
     assert fox.candidate_words_with_index == [('the', 0), ('quick', 4), ('brown', 10), ('fox', 16), ('jumps', 20),
                                               ('over', 26), ('the', 31), ('lazy', 35), ('dog', 40), ('and', 44),
                                               ('lands', 48), ('elegantly', 54), ('on', 64), ('the', 67),
                                               ('meadow.', 71)]
-    assert banana.candidate_words_with_index == [('banana', 0)]
+    assert banana.candidate_words_with_index == [('bananar4ma', 0)]
     assert fox.score == 0
     assert banana.score == 0
     assert fox.matches == []
@@ -117,6 +127,31 @@ def test_scoringresult_find_best_word_match(fox, henry):
     assert henry.find_best_word_match("me") == ('melt', 39, 0, 50)
 
 
+def test_scoringresult_merge_positions_to_substrings(fox):
+    assert fox.merge_positions_to_substrings([]) == []
+    positions = [16, 17, 18, 27, 28, 29, 30]
+    assert fox.merge_positions_to_substrings(positions) == [(16, "fox"), (27, "ver ")]
+
+
+def test_scoringresult_check_query_empty(fox, empty):
+    assert fox.check_query_empty() == False  # noqa: E712
+    assert fox.score == 0
+    assert empty.check_query_empty() == True  # noqa: E712
+    assert empty.score == 100
+
+
+def test_scoringresult_is_boundary(fox, banana):
+    assert banana.is_boundary(0) == True  # noqa: E712
+    assert banana.is_boundary(1) == False  # noqa: E712
+    assert banana.is_boundary(2) == True  # noqa: E712
+    assert banana.is_boundary(7) == True  # noqa: E712
+    assert banana.is_boundary(8) == True  # noqa: E712
+    assert banana.is_boundary(9) == False  # noqa: E712
+    assert fox.is_boundary(0) == True  # noqa: E712
+    assert fox.is_boundary(4) == True  # noqa: E712
+    assert fox.is_boundary(5) == False  # noqa: E712
+
+
 def test_scoring_full_words(henry, fox, banana):
     result = scoring_full_words(henry.query, henry.candidate)
     # 50 (% matched word "melt") * 1.5 (matched word is the beginning of the candidate word)
@@ -146,3 +181,21 @@ def test_scoring_full_words(henry, fox, banana):
     assert result.score == 0
     assert result.matches == []
     assert result._already_matched_words == set()
+
+
+def test_scoring_fzf(henry, fox, banana, empty, gap):
+    result = scoring_fzf(henry.query, henry.candidate)
+    assert result.score == 70
+    assert result.matches == [(14, henry.query)]
+    result = scoring_fzf(empty.query, empty.candidate)
+    assert result.score == 100
+    assert result.matches == []
+    result = scoring_fzf(banana.query, banana.candidate)
+    assert result.score == 0
+    assert result.matches == []
+    result = scoring_fzf(fox.query, fox.candidate)
+    assert result.score == 0
+    assert result.matches == []
+    result = scoring_fzf(gap.query, gap.candidate)
+    assert result.score == 1
+    assert result.matches == [(0, 'H'), (51, 'x')]

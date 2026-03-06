@@ -20,12 +20,16 @@ Minimal Example
 In this minimal example, you can select a single item from a list of strings
 using :class:`~curses_fzf.FuzzyFinder`.
 Accept an entry using the :kbd:`ENTER` key or cancel the selection using the
-:kbd:`ESC` key or :kbd:`Ctrl + C`.
+:kbd:`ESC` key or :kbd:`Ctrl+C`.
 Use :kbd:`F1` to toggle the help screen, which shows all available key bindings.
 Since in single selection mode it is not possible to select no item, there is
 either exactly one item in the resulting list or the selection process was
 aborted by the user, which raises a :class:`~curses_fzf.CursesFzfAborted`
 exception.
+
+Related examples:
+
+- `minimal_example.py`_
 
 .. image:: _static/help.png
     :width: 100%
@@ -55,6 +59,11 @@ arbitrary number (including zero) of items from the list using the
 :kbd:`TAB` key. The final selection is again accepted using the
 :kbd:`ENTER` key.
 
+Related examples:
+
+- `dict_items_with_simple_preview_and_preselect.py`_
+- `custom_keybindings_and_external_functions.py`_
+
 Query Pre-Seeding
 -----------------
 
@@ -76,10 +85,15 @@ sorted by match :attr:`~curses_fzf.ScoringResult.score` (see
 The :attr:`~curses_fzf.FuzzyFinder.query` can also be pre-seeded with a given
 string.
 The user is still able to fully modify the :attr:`~curses_fzf.FuzzyFinder.query`,
-including completely clearing it (:kbd:`Ctrl + K`).
+including completely clearing it (:kbd:`Ctrl+K`).
 The parameter :attr:`~curses_fzf.FuzzyFinder.query` can be given to
 :class:`~curses_fzf.FuzzyFinder` constructor or the object's
 :meth:`~curses_fzf.FuzzyFinder.find` method.
+
+Related examples:
+
+- `reusing_fuzzyfinder_and_autoreturn.py`_
+- `custom_keybindings_and_external_functions.py`_
 
 .. image:: _static/simple.png
     :width: 100%
@@ -101,6 +115,10 @@ Instead of ``"ITEMS"``, you can provide a custom title for the
 The parameter :attr:`~curses_fzf.FuzzyFinder.title` can be given to
 :class:`~curses_fzf.FuzzyFinder` constructor or the object's
 :meth:`~curses_fzf.FuzzyFinder.find` method.
+
+Related examples:
+
+- `reusing_fuzzyfinder_and_autoreturn.py`_
 
 Autoreturn
 ----------
@@ -125,6 +143,10 @@ If :attr:`~curses_fzf.FuzzyFinder.multi` is ``False`` the number given as
 :attr:`~curses_fzf.FuzzyFinder.autoreturn`'s value is not relevant, if a single
 match remains, it will be returned.
 
+Related examples:
+
+- `reusing_fuzzyfinder_and_autoreturn.py`_
+
 Page Size
 ---------
 
@@ -137,3 +159,13 @@ the number of entries that are skipped by the keys :kbd:`PAGE_UP`
 and :kbd:`PAGE_DOWN`.
 Modifying this parameter can be useful if you have a very long list of items and
 want to jump through it faster.
+
+Related examples:
+
+- `dict_items_with_simple_preview_and_preselect.py`_
+
+
+.. _dict_items_with_simple_preview_and_preselect.py: https://github.com/Heiko-san/curses_fzf/blob/main/examples/dict_items_with_simple_preview_and_preselect.py
+.. _reusing_fuzzyfinder_and_autoreturn.py: https://github.com/Heiko-san/curses_fzf/blob/main/examples/reusing_fuzzyfinder_and_autoreturn.py
+.. _custom_keybindings_and_external_functions.py: https://github.com/Heiko-san/curses_fzf/blob/main/examples/custom_keybindings_and_external_functions.py
+.. _minimal_example.py: https://github.com/Heiko-san/curses_fzf/blob/main/examples/minimal_example.py
