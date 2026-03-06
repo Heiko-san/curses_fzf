@@ -145,7 +145,7 @@ Scoring Function
     result = fzf.find(data)
 
 :class:`~curses_fzf.FuzzyFinder` comes with built-in scoring functions
-(default :meth:`~curses_fzf.scoring_full_words`).
+(default :meth:`~curses_fzf.scoring_fzf`).
 Scoring determines if an item is considered to match the
 :attr:`~curses_fzf.FuzzyFinder.query` the user entered.
 The higher the score the higher the item gets sorted among the matches in the

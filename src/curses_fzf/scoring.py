@@ -324,6 +324,10 @@ def scoring_full_words(query: str, candidate: str) -> ScoringResult:
 def scoring_fzf(query: str, candidate: str) -> ScoringResult:
     """
     A fzf-like fuzzy scoring.
+
+    This is the default scoring function used by :class:`~curses_fzf.FuzzyFinder`
+    if no other scoring function is provided.
+
     The :attr:`~ScoringResult.query` characters are matched as a subsequence
     against the :attr:`~ScoringResult.candidate` (characters must appear in order).
     There are bonuses for consecutive matches, matches on boundaries and matches

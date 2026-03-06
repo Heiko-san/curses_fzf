@@ -4,7 +4,7 @@ from typing import Any, Callable, List, Tuple, Optional, Union
 from .colors import ColorTheme, _init_curses
 from .help import _help, _base_window
 from .errors import CursesFzfAborted, CursesFzfAssertion, CursesFzfIndexOutOfBounds
-from .scoring import ScoringResult, scoring_full_words
+from .scoring import ScoringResult, scoring_fzf
 
 
 ITEM_COL_START = 2
@@ -52,7 +52,7 @@ class FuzzyFinder:
             function is used to calculate the score of an item from :attr:`~curses_fzf.FuzzyFinder.all_items`
             list based on the current :attr:`~curses_fzf.FuzzyFinder.query` and the
             :meth:`~curses_fzf.FuzzyFinder.display` string of the item.
-            Default is :func:`~curses_fzf.scoring_full_words`.
+            Default is :func:`~curses_fzf.scoring_fzf`.
             See :meth:`~curses_fzf.FuzzyFinder.score` for more details.
         color_theme (Optional[ColorTheme]): The :attr:`~curses_fzf.FuzzyFinder.color_theme`
             to use for the interface, if ``None`` was given the default
@@ -82,7 +82,7 @@ class FuzzyFinder:
                  display: Callable[[Any], str] = lambda item: str(item),
                  preselect: Callable[[Any, ScoringResult], bool] = lambda item, result: False,
                  preview: Optional[Callable[[curses.window, ColorTheme, Any, ScoringResult], str]] = None,
-                 score: Callable[[str, str], ScoringResult] = scoring_full_words,
+                 score: Callable[[str, str], ScoringResult] = scoring_fzf,
                  color_theme: Optional[ColorTheme] = None,
                  autoreturn: int = 0,
                  page_size: int = 10,
@@ -205,7 +205,7 @@ class FuzzyFinder:
         the :attr:`~curses_fzf.FuzzyFinder.filtered` list and to determine which
         items match the query.
 
-        Default is :func:`~curses_fzf.scoring_full_words`.
+        Default is :func:`~curses_fzf.scoring_fzf`.
 
         Args:
             query (str): The current :attr:`~curses_fzf.FuzzyFinder.query`.

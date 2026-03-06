@@ -30,4 +30,5 @@ your own scoring functions.
 Built-in Scoring Functions
 --------------------------
 
+.. autofunction:: curses_fzf.scoring_fzf
 .. autofunction:: curses_fzf.scoring_full_words
