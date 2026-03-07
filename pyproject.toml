@@ -60,8 +60,8 @@ dev = [
     "pyyaml>=6",
 ]
 
-# [project.scripts]
-# pyfzf = "curses_fzf.cli:main"
+[project.scripts]
+curses-fzf = "curses_fzf.main:main"
 
 [tool.hatch.version]
 path = "src/curses_fzf/__about__.py"
