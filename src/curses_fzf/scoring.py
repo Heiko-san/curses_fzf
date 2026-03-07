@@ -276,6 +276,28 @@ class ScoringResult():
         result.append((start, self.candidate[start:prev + 1]))
         return result
 
+    def greedy_match_positions(self) -> List[int]:
+        """
+        Find the positions of each single query characters in the candidate
+        string using a greedy forward scan.
+        This is a common first step in many fuzzy matching algorithms and can be
+        used to quickly filter out candidates that don't match at all or to get
+        a baseline score for more complex scoring functions.
+
+        Returns:
+            List[int]: A list of positions where the query characters match in
+                the candidate.
+        """
+        positions: List[int] = []
+        start = 0
+        for query_char in self.query_lower:
+            pos = self.candidate_lower.find(query_char, start)
+            if pos == -1:
+                return []
+            positions.append(pos)
+            start = pos + 1
+        return positions
+
 
 def scoring_full_words(query: str, candidate: str) -> ScoringResult:
     """
@@ -321,7 +343,7 @@ def scoring_full_words(query: str, candidate: str) -> ScoringResult:
     return sr
 
 
-def scoring_fzf(query: str, candidate: str) -> ScoringResult:
+def scoring_fzf(query: str, candidate: str) -> ScoringResult:  # noqa: C901
     """
     A fzf-like fuzzy scoring.
 
@@ -332,49 +354,58 @@ def scoring_fzf(query: str, candidate: str) -> ScoringResult:
     against the :attr:`~ScoringResult.candidate` (characters must appear in order).
     There are bonuses for consecutive matches, matches on boundaries and matches
     early in the candidate.
-    There are penalties for large gaps between matched characters.
-    Matched ranges are highlighted via :attr:`~ScoringResult.matches`.
     """
     sr = ScoringResult(query, candidate)
     if sr.check_query_empty():
         return sr
-    # find match positions of all query characters (greedy forward scan)
-    positions: List[int] = []
-    search_start_index = 0
-    for query_char in sr.query_lower:
-        found = sr.candidate_lower.find(query_char, search_start_index)
-        if found < 0:
-            sr.score = 0
-            return sr
-        positions.append(found)
-        search_start_index = found + 1
-    # calculate score using fzf-like heuristics
-    sr.score = 0
-    EARLY_BONUS_MAX = 20   # bonus for early first match
-    CONTIGUOUS_BONUS = 30  # bonus if query is found as a contiguous substring
-    BASE_MATCH = 8         # base points per matched char
-    BOUNDARY_BONUS = 14    # extra points when match begins at a boundary
-    CONSEC_BONUS = 18      # extra points for consecutive chars
-    GAP_PENALTY = 3        # penalty per gap char between matches
-    sr.score += max(0, EARLY_BONUS_MAX - positions[0])
-    contiguous = all(positions[i] + 1 == positions[i + 1] for i in range(len(positions) - 1))
-    if contiguous:
-        sr.score += CONTIGUOUS_BONUS
-    for index, position in enumerate(positions):
-        sr.score += BASE_MATCH
-        if sr.is_boundary(position):
-            sr.score += BOUNDARY_BONUS
-        if index > 0:
-            prev = positions[index - 1]
-            if position == prev + 1:
-                sr.score += CONSEC_BONUS
-            else:
-                gap = position - prev - 1
-                sr.score -= GAP_PENALTY * gap
-    # calculate matched substrings for highlighting
-    sr.matches = sr.merge_positions_to_substrings(positions)
-    # if gaps result in negative score, set to 1 to not filter them out,
-    # but sort them below all positive-scoring matches
-    if sr.score <= 0:
-        sr.score = 1
+    # this algorithm may miss some matches if a longer subsequence is found
+    # before a shorter one that would allow to match the rest of the query later
+    # on, so we calculate a greedy match as a fallback
+    greedy_matches = sr.merge_positions_to_substrings(
+        sr.greedy_match_positions())
+    if not greedy_matches:
+        sr.score = 0
+        return sr
+    MATCH_BASE_SCORE = 100  # starting score if query matches (once)
+    BOUNDARY_MATCH_WEIGHT = 8.0  # bonus factor for matches on boundaries
+    EARLY_MATCH_WEIGHT = 5.0  # bonus factor for early matches
+    WORD_COVERAGE_WEIGHT = 10.0  # bonus factor for word coverage
+    # find the longest matching subsequences of the query in the candidate in
+    # original order, every match gets a fixed base score to beginn with
+    query = sr.query_lower
+    start = 0
+    sr.score = MATCH_BASE_SCORE
+    while query:
+        for i in range(len(query), 0, -1):
+            query_sequence = query[:i]
+            pos = sr.candidate_lower.find(query_sequence, start)
+            if pos != -1:
+                sr.add_match(pos, sr.candidate[pos:pos+i], 0)
+                query = query[i:]
+                start = pos + i
+                break
+            if i == 1:
+                # no match found, but since we didn't return before, there
+                # actually is a match, so we use the greedy match as a fallback
+                sr.matches = greedy_matches
+                query = ""
+    # add some bonus points
+    total_len = len(candidate)
+    for start_pos, match_str in sr.matches:
+        match_len = len(match_str)
+        # bonus on word boundary
+        if sr.is_boundary(start_pos):
+            sr.score += int(BOUNDARY_MATCH_WEIGHT * match_len)
+        # bonus for early matches
+        early_factor = (total_len - start_pos) / total_len  # 0.x .. 1
+        sr.score += int(EARLY_MATCH_WEIGHT * match_len * early_factor)
+        # bonus for word coverage
+        for word, word_start in sr.candidate_words_with_index:
+            word_end = word_start + len(word)
+            if word_start <= start_pos < word_end:
+                coverage = match_len / len(word)  # 0.x .. 1
+                sr.score += int(WORD_COVERAGE_WEIGHT * match_len * coverage)
+                break
+    # fewer match groups should be ranked higher
+    sr.score //= len(sr.matches)
     return sr

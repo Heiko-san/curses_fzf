@@ -23,9 +23,9 @@ def my_score(query: str, candidate: str) -> ScoringResult:
     so that it will be highlighted in the interface.
     """
     sr = ScoringResult(query, candidate)
-    if not query:
-        # if the query is empty, we want to show all candidates in original order
-        sr.score = 1
+    # if the query is empty, we want to show all candidates in original order
+    # check_query_empty() will set the score to 100 if query is empty
+    if sr.check_query_empty():
         return sr
 
     matches = [m.start() for m in re.finditer(

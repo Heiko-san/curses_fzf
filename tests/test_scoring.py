@@ -23,8 +23,8 @@ def empty():
 
 
 @pytest.fixture
-def gap():
-    return ScoringResult("hx", "Henry is at home and watches a snowman melt slowly x.")
+def greed():
+    return ScoringResult("nowtch", "Henry is at home and watches a snowman melt slowly.")
 
 
 def test_scoringresult_init(fox, banana):
@@ -152,6 +152,10 @@ def test_scoringresult_is_boundary(fox, banana):
     assert fox.is_boundary(5) == False  # noqa: E712
 
 
+def test_scoringresult_greedy_match_positions(greed):
+    assert greed.greedy_match_positions() == [2, 13, 21, 23, 24, 25]
+
+
 def test_scoring_full_words(henry, fox, banana):
     result = scoring_full_words(henry.query, henry.candidate)
     # 50 (% matched word "melt") * 1.5 (matched word is the beginning of the candidate word)
@@ -183,9 +187,9 @@ def test_scoring_full_words(henry, fox, banana):
     assert result._already_matched_words == set()
 
 
-def test_scoring_fzf(henry, fox, banana, empty, gap):
+def test_scoring_fzf(henry, fox, banana, empty, greed):
     result = scoring_fzf(henry.query, henry.candidate)
-    assert result.score == 70
+    assert result.score == 117
     assert result.matches == [(14, henry.query)]
     result = scoring_fzf(empty.query, empty.candidate)
     assert result.score == 100
@@ -196,6 +200,6 @@ def test_scoring_fzf(henry, fox, banana, empty, gap):
     result = scoring_fzf(fox.query, fox.candidate)
     assert result.score == 0
     assert result.matches == []
-    result = scoring_fzf(gap.query, gap.candidate)
-    assert result.score == 1
-    assert result.matches == [(0, 'H'), (51, 'x')]
+    result = scoring_fzf(greed.query, greed.candidate)
+    assert result.score == 35
+    assert result.matches == [(2, 'n'), (13, 'o'), (21, 'w'), (23, 'tch')]
