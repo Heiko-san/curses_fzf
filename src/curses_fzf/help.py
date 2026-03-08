@@ -1,7 +1,6 @@
 import curses
 import curses.textpad
-from typing import Tuple
-
+from typing import Any, Dict, Tuple
 from .colors import ColorTheme
 
 
@@ -17,41 +16,21 @@ def _base_window(stdscr: curses.window, title: str, footer: str, color_theme: Co
     return height, width
 
 
-def _help(stdscr: curses.window, page_size: int, color_theme: ColorTheme) -> None:
+def _help(stdscr: curses.window, keymap: Dict[int, Dict[str, Any]], color_theme: ColorTheme) -> None:   # noqa: C901
     """
     Print a help screen.
     """
-    help = (
-        ("Fuzzy Finder Query", (
-            ("text characters", "Enter a fuzzy finder query."),
-            ("BACKSPACE", "Remove one character before the cursor."),
-            ("DELETE", "Remove one character at the cursor."),
-            ("CTRL + K", "Clear entire query."),
-            ("ARROW-LEFT", "Move cursor left 1 position in query."),
-            ("ARROW-RIGHT", "Move cursor right 1 position in query."),
-        )),
-        ("List Movement", (
-            ("ARROW-UP", "Move up 1 entry."),
-            ("ARROW-DOWN", "Move down 1 entry."),
-            ("PAGE-UP", f"Move up {page_size} entries."),
-            ("PAGE-DOWN", f"Move down {page_size} entries."),
-            ("HOME", "Move to first item."),
-            ("END", "Move to last item."),
-        )),
-        ("Item Selection (multi-select only)", (
-            ("TAB", "Toggle selection of the current item."),
-            ("CTRL + A", "Select all items matching current filter query."),
-            ("CTRL + X", "Deselect all items matching current filter query."),
-        )),
-        ("Control Commands", (
-            ("ENTER", "Accept the current item(s)."),
-            ("ESC", "Abort fuzzy raising CursesFzfAborted exception."),
-            ("CTRL + P", "Toggle preview window (if a preview function is provided)."),
-            ("F1", "Toggle this help screen."),
-        )),
-    )
+    categories = {}
+    for entry in keymap.values():
+        if "key" in entry and "description" in entry:
+            category = entry["category"] if "category" in entry else "General Keybindings"
+            if category not in categories:
+                categories[category] = []
+            categories[category].append((entry["key"], entry["description"]))
+    help = [(k, sorted(categories[k])) for k in sorted(categories.keys())]
     while True:
-        height, width = _base_window(stdscr, "HELP", "F1 = close help", color_theme)
+        height, width = _base_window(stdscr, "HELP", "F1 = close help",
+                                     color_theme)
         line = 2
         section_start = 5
         col1_start = section_start + 2
@@ -68,11 +47,13 @@ def _help(stdscr: curses.window, page_size: int, color_theme: ColorTheme) -> Non
                 if line > height-4:
                     break
                 # print key-column with wixed width
-                stdscr.addstr(line, col1_start, str(key[0][:min(col1_width, width - col1_start - 2)]),
-                              curses.color_pair(color_theme.text))
+                stdscr.addstr(line, col1_start, str(key[0][
+                    :min(col1_width, width - col1_start - 2)]),
+                    curses.color_pair(color_theme.text))
                 # print key description, limit width to one space before frame
                 if width > col1_width + col1_start + 3:
-                    stdscr.addstr(line, col1_start + col1_width + 2, str(key[1][:width - col1_start - col1_width - 4]),
+                    stdscr.addstr(line, col1_start + col1_width + 2,
+                                  str(key[1][:width - col1_start - col1_width - 4]),
                                   curses.color_pair(color_theme.text))
                 line += 1
         stdscr.refresh()

@@ -62,6 +62,7 @@ arbitrary number (including zero) of items from the list using the
 Related examples:
 
 - `dict_items_with_simple_preview_and_preselect.py`_
+- `min_max_items.py`_
 - `custom_keybindings_and_external_functions.py`_
 
 Query Pre-Seeding
@@ -93,6 +94,7 @@ The parameter :attr:`~curses_fzf.FuzzyFinder.query` can be given to
 Related examples:
 
 - `reusing_fuzzyfinder_and_autoreturn.py`_
+- `min_max_items.py`_
 - `custom_keybindings_and_external_functions.py`_
 
 .. image:: _static/simple.png
@@ -118,6 +120,7 @@ The parameter :attr:`~curses_fzf.FuzzyFinder.title` can be given to
 
 Related examples:
 
+- `min_max_items.py`_
 - `reusing_fuzzyfinder_and_autoreturn.py`_
 
 Autoreturn
@@ -145,7 +148,26 @@ match remains, it will be returned.
 
 Related examples:
 
+- `min_max_items.py`_
 - `reusing_fuzzyfinder_and_autoreturn.py`_
+
+Min/Max Items
+-------------
+
+.. code-block:: python
+
+    result = FuzzyFinder(multi=True, min_items=2, max_items=3).find(data)
+
+If :attr:`~curses_fzf.FuzzyFinder.multi` is ``True``, you can require the user
+to select at least a certain number of items using
+:attr:`~curses_fzf.FuzzyFinder.min_items` and at most a certain number of items
+using :attr:`~curses_fzf.FuzzyFinder.max_items`.
+If the user tries to accept a selection that does not meet these requirements,
+accept the selection with :kbd:`ENTER` will not be allowed.
+
+Related examples:
+
+- `min_max_items.py`_
 
 Page Size
 ---------
@@ -169,3 +191,4 @@ Related examples:
 .. _reusing_fuzzyfinder_and_autoreturn.py: https://github.com/Heiko-san/curses_fzf/blob/main/examples/reusing_fuzzyfinder_and_autoreturn.py
 .. _custom_keybindings_and_external_functions.py: https://github.com/Heiko-san/curses_fzf/blob/main/examples/custom_keybindings_and_external_functions.py
 .. _minimal_example.py: https://github.com/Heiko-san/curses_fzf/blob/main/examples/minimal_example.py
+.. _min_max_items.py: https://github.com/Heiko-san/curses_fzf/blob/main/examples/min_max_items.py

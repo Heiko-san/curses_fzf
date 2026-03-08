@@ -100,6 +100,19 @@ def test_kb_accept_selection():
     fzf_multi.filtered = []
     fzf_multi.kb_accept_selection()
     assert fzf_multi.return_selection_now == True  # noqa: E712
+    fzf_multi.return_selection_now = False
+    # allow multi accept only in range of min_items and max_items
+    fzf_multi.selected = ["item1"]
+    fzf_multi.min_items = 2
+    fzf_multi.max_items = 2
+    fzf_multi.kb_accept_selection()
+    assert fzf_multi.return_selection_now == False  # noqa: E712
+    fzf_multi.selected = ["item1", "item2", "item3"]
+    fzf_multi.kb_accept_selection()
+    assert fzf_multi.return_selection_now == False  # noqa: E712
+    fzf_multi.selected = ["item1", "item3"]
+    fzf_multi.kb_accept_selection()
+    assert fzf_multi.return_selection_now == True  # noqa: E712
 
 
 def test_kb_toggle_preview():
@@ -414,76 +427,76 @@ def test_keymap():
     assert isinstance(fzf.keymap, dict)
     assert curses.KEY_UP in fzf.keymap  # Up arrow
     fzf._cursor_items = 3
-    fzf.keymap[curses.KEY_UP]()
+    fzf.keymap[curses.KEY_UP]["function"]()
     assert fzf.cursor_items == 2
     assert curses.KEY_DOWN in fzf.keymap  # Down arrow
     fzf._cursor_items = 3
-    fzf.keymap[curses.KEY_DOWN]()
+    fzf.keymap[curses.KEY_DOWN]["function"]()
     assert fzf.cursor_items == 4
     assert curses.KEY_PPAGE in fzf.keymap  # Page Up
     fzf._cursor_items = 3
-    fzf.keymap[curses.KEY_PPAGE]()
+    fzf.keymap[curses.KEY_PPAGE]["function"]()
     assert fzf.cursor_items == 1
     assert curses.KEY_NPAGE in fzf.keymap  # Page Down
     fzf._cursor_items = 3
-    fzf.keymap[curses.KEY_NPAGE]()
+    fzf.keymap[curses.KEY_NPAGE]["function"]()
     assert fzf.cursor_items == 5
     assert curses.KEY_HOME in fzf.keymap  # Home
     fzf._cursor_items = 3
-    fzf.keymap[curses.KEY_HOME]()
+    fzf.keymap[curses.KEY_HOME]["function"]()
     assert fzf.cursor_items == 0
     assert curses.KEY_END in fzf.keymap  # End
     fzf._cursor_items = 3
-    fzf.keymap[curses.KEY_END]()
+    fzf.keymap[curses.KEY_END]["function"]()
     assert fzf.cursor_items == 6
     assert curses.KEY_LEFT in fzf.keymap  # Left arrow
     fzf._cursor_query = 5
-    fzf.keymap[curses.KEY_LEFT]()
+    fzf.keymap[curses.KEY_LEFT]["function"]()
     assert fzf.cursor_query == 4
     assert curses.KEY_RIGHT in fzf.keymap  # Right arrow
     fzf._cursor_query = 5
-    fzf.keymap[curses.KEY_RIGHT]()
+    fzf.keymap[curses.KEY_RIGHT]["function"]()
     assert fzf.cursor_query == 6
     assert curses.KEY_BACKSPACE in fzf.keymap  # Backspace
     fzf._cursor_query = 5
-    fzf.keymap[curses.KEY_BACKSPACE]()
+    fzf.keymap[curses.KEY_BACKSPACE]["function"]()
     assert fzf.query == "my iitial query"
     assert fzf.cursor_query == 4
     assert curses.KEY_DC in fzf.keymap  # Delete
     fzf._cursor_query = 5
-    fzf.keymap[curses.KEY_DC]()
+    fzf.keymap[curses.KEY_DC]["function"]()
     assert fzf.query == "my iiial query"
     assert fzf.cursor_query == 5
     assert 11 in fzf.keymap  # Ctrl+K
     fzf._cursor_query = 5
-    fzf.keymap[11]()
+    fzf.keymap[11]["function"]()
     assert fzf.query == ""
     assert fzf.cursor_query == 0
     assert 27 in fzf.keymap  # Esc
     with pytest.raises(CursesFzfAborted):
-        fzf.keymap[27]()
+        fzf.keymap[27]["function"]()
     assert curses.KEY_ENTER in fzf.keymap  # Enter
     assert fzf.return_selection_now == False  # noqa: E712
-    fzf.keymap[curses.KEY_ENTER]()
+    fzf.keymap[curses.KEY_ENTER]["function"]()
     assert fzf.return_selection_now == True  # noqa: E712
     assert 9 in fzf.keymap  # Tab
     fzf._cursor_items = 1
     fzf.selected = []
-    fzf.keymap[9]()
+    fzf.keymap[9]["function"]()
     assert fzf.selected == ["item2"]
     assert 1 in fzf.keymap  # Ctrl+A
     fzf.selected = []
-    fzf.keymap[1]()
+    fzf.keymap[1]["function"]()
     assert fzf.selected == ["item1", "item2", "item3", "item4", "item5", "item6", "item7"]
     assert 24 in fzf.keymap  # Ctrl+X
-    fzf.keymap[24]()
+    fzf.keymap[24]["function"]()
     assert fzf.selected == []
     assert 16 in fzf.keymap  # Ctrl+P
     assert fzf.show_preview == True  # noqa: E712
-    fzf.keymap[16]()
+    fzf.keymap[16]["function"]()
     assert fzf.show_preview == False  # noqa: E712
     assert curses.KEY_F1 in fzf.keymap  # F1
-    assert fzf.keymap[curses.KEY_F1] == fzf.kb_show_help
+    assert fzf.keymap[curses.KEY_F1]["function"] == fzf.kb_show_help
 
 
 def test_handle_input():

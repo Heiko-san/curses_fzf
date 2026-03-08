@@ -39,12 +39,37 @@ FuzzyFinder.kb_deselect_all = deselect_really_all
 fzf = FuzzyFinder(multi=True)
 
 # add some custom keybindings for parameterized actions
-fzf.keymap[curses.KEY_F2] = lambda: fzf.kb_move_items_cursor_relative(-2)
-fzf.keymap[curses.KEY_F3] = lambda: fzf.kb_move_items_cursor_relative(2)
+fzf.keymap[curses.KEY_F2] = {
+    # if only function key is given, this keybinding will not be shown in the help screen
+    "function": lambda: fzf.kb_move_items_cursor_relative(-2),
+    # if key and description are given, this keybinding will be shown in the help screen
+    # human readable key name for help screen
+    "key": "F2",
+    # description for help screen
+    "description": "Move cursor up by 2 items",
+    # optional category for help screen, default is "General Keybindings"
+    "category": "Custom Keybindings"
+}
+fzf.keymap[curses.KEY_F3] = {
+    "function": lambda: fzf.kb_move_items_cursor_relative(2),
+    "key": "F3",
+    "description": "Move cursor down by 2 items",
+    "category": "Custom Keybindings"
+}
 # add custom keybinding for simple action (without parameters)
-fzf.keymap[curses.KEY_F4] = fzf.kb_accept_selection
+fzf.keymap[curses.KEY_F4] = {
+    "function": fzf.kb_accept_selection,
+    "key": "F4",
+    "description": "Accept current selection",
+    "category": "Custom Keybindings"
+}
 # add custom keybinding for a user defined external function
-fzf.keymap[curses.KEY_F5] = lambda: select_random_item_with_for(fzf)
+fzf.keymap[curses.KEY_F5] = {
+    "function": lambda: select_random_item_with_for(fzf),
+    "key": "F5",
+    "description": "Select a random item with 'for' in query",
+    "category": "Custom Keybindings"
+}
 
 try:
     result = fzf.find(data)
