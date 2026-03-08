@@ -315,46 +315,126 @@ class FuzzyFinder:
         """
         # keymap
         self.keymap = {
-            # ARROW-UP: move cursor up 1 position in filter list
-            curses.KEY_UP: lambda: self.kb_move_items_cursor_relative(-1),  # 259
-            # ARROW-DOWN: move cursor down 1 position in filter list
-            curses.KEY_DOWN: lambda: self.kb_move_items_cursor_relative(1),  # 258
-            # PAGE-UP: move cursor up by page_size positions
-            curses.KEY_PPAGE: lambda: self.kb_move_items_cursor_relative(-self.page_size),  # 339
-            # PAGE-DOWN: move cursor down by page_size positions
-            curses.KEY_NPAGE: lambda: self.kb_move_items_cursor_relative(self.page_size),  # 338
-            # HOME: move cursor to start of list
-            curses.KEY_HOME: lambda: self.kb_move_items_cursor_absolute(0),  # 262
-            # END: move cursor to end of list
-            curses.KEY_END: lambda: self.kb_move_items_cursor_absolute(len(self.filtered) - 1),  # 360
-            # ARROW-LEFT: move cursor left 1 position in query
-            curses.KEY_LEFT: lambda: self.kb_move_query_cursor_relative(-1),  # 260
-            # ARROW-RIGHT: move cursor right 1 position in query
-            curses.KEY_RIGHT: lambda: self.kb_move_query_cursor_relative(1),  # 261
-            # Ctrl + K: clear the query
-            11: self.kb_reset_query,
-            # BACKSPACE: remove the character before the cursor from the query
-            8: self.kb_remove_from_query_cursor,  # ASCII backspace
-            127: self.kb_remove_from_query_cursor,  # ASCII del
-            curses.KEY_BACKSPACE: self.kb_remove_from_query_cursor,  # 263
-            # DELETE: remove the character at the cursor from the query
-            curses.KEY_DC: lambda: self.kb_remove_from_query_cursor(False),  # 330
-            # ESC: raise abort exception
-            27: self.kb_abort_selection,
-            # ENTER: accept selection
-            10: self.kb_accept_selection,  # linefeed (classic enter key)
-            13: self.kb_accept_selection,  # carriage return (classic enter key)
-            curses.KEY_ENTER: self.kb_accept_selection,  # 343
-            # TAB: (de)select item (in multi mode)
-            9: self.kb_toggle_selection,  # Tab - (de)select item (in multi mode)
-            # Ctrl + A: select all from current filter (in multi mode)
-            1: self.kb_select_all,
-            # Ctrl + X: deselect all from current filter (in multi mode)
-            24: self.kb_deselect_all,
-            # Ctrl + P: toggle preview window
-            16: self.kb_toggle_preview,
-            # F1: show help
-            curses.KEY_F1: self.kb_show_help,  # 265
+            27: {
+                "function": self.kb_abort_selection,
+                "key": "ESC",
+                "description": "Abort fuzzy finder, raising CursesFzfAborted exception.",
+                "category": "Control Commands",
+            },
+            curses.KEY_ENTER: {
+                "function": self.kb_accept_selection,  # 343
+                "key": "ENTER",
+                "description": "Accept the current item(s).",
+                "category": "Control Commands",
+            },
+            10: {
+                "function": self.kb_accept_selection,  # linefeed (classic enter key)
+            },
+            13: {
+                "function": self.kb_accept_selection,  # carriage return (classic enter key)
+            },
+            16: {
+                "function": self.kb_toggle_preview,
+                "key": "Ctrl+P",
+                "description": "Toggle preview window (if a preview function is provided).",
+                "category": "Control Commands",
+            },
+            curses.KEY_F1: {
+                "function": self.kb_show_help,  # 265
+                "key": "F1",
+                "description": "Toggle this help screen.",
+                "category": "Control Commands",
+            },
+            curses.KEY_LEFT: {
+                "function": lambda: self.kb_move_query_cursor_relative(-1),  # 260
+                "key": "ARROW-LEFT",
+                "description": "Move cursor left 1 position in query.",
+                "category": "Fuzzy Finder Query",
+            },
+            curses.KEY_RIGHT: {
+                "function": lambda: self.kb_move_query_cursor_relative(1),  # 261
+                "key": "ARROW-RIGHT",
+                "description": "Move cursor right 1 position in query.",
+                "category": "Fuzzy Finder Query",
+            },
+            11: {
+                "function": self.kb_reset_query,
+                "key": "Ctrl+K",
+                "description": "Clear entire query.",
+                "category": "Fuzzy Finder Query",
+            },
+            curses.KEY_BACKSPACE: {
+                "function": self.kb_remove_from_query_cursor,
+                "key": "BACKSPACE",
+                "description": "Remove the character before the cursor from the query.",
+                "category": "Fuzzy Finder Query",
+            },
+            8: {
+                "function": self.kb_remove_from_query_cursor,
+            },
+            127: {
+                "function": self.kb_remove_from_query_cursor,
+            },
+            curses.KEY_DC: {
+                "function": lambda: self.kb_remove_from_query_cursor(False),  # 330
+                "key": "DELETE",
+                "description": "Remove one character at the cursor.",
+                "category": "Fuzzy Finder Query",
+            },
+            9: {
+                "function": self.kb_toggle_selection,
+                "key": "TAB",
+                "description": "Toggle selection of the current item.",
+                "category": "Item Selection (multi-select only)",
+            },
+            1: {
+                "function": self.kb_select_all,
+                "key": "Ctrl+A",
+                "description": "Select all items matching current filter query.",
+                "category": "Item Selection (multi-select only)",
+            },
+            24: {
+                "function": self.kb_deselect_all,
+                "key": "Ctrl+X",
+                "description": "Deselect all items matching current filter query.",
+                "category": "Item Selection (multi-select only)",
+            },
+            curses.KEY_UP: {
+                "function": lambda: self.kb_move_items_cursor_relative(-1),  # 259
+                "key": "ARROW-UP",
+                "description": "Move up 1 entry.",
+                "category": "List Movement",
+            },
+            curses.KEY_DOWN: {
+                "function": lambda: self.kb_move_items_cursor_relative(1),  # 258
+                "key": "ARROW-DOWN",
+                "description": "Move down 1 entry.",
+                "category": "List Movement",
+            },
+            curses.KEY_PPAGE: {
+                "function": lambda: self.kb_move_items_cursor_relative(-self.page_size),  # 339
+                "key": "PAGE-UP",
+                "description": f"Move up by {self.page_size} entries.",
+                "category": "List Movement",
+            },
+            curses.KEY_NPAGE: {
+                "function": lambda: self.kb_move_items_cursor_relative(self.page_size),  # 338
+                "key": "PAGE-DOWN",
+                "description": f"Move down by {self.page_size} entries.",
+                "category": "List Movement",
+            },
+            curses.KEY_HOME: {
+                "function": lambda: self.kb_move_items_cursor_absolute(0),  # 262
+                "key": "HOME",
+                "description": "Move to first item.",
+                "category": "List Movement",
+            },
+            curses.KEY_END: {
+                "function": lambda: self.kb_move_items_cursor_absolute(len(self.filtered) - 1),  # 360
+                "key": "END",
+                "description": "Move to last item.",
+                "category": "List Movement",
+            },
         }
         """
         Dictionary mapping keys (e.g. ``curses.KEY_UP``) to their corresponding
@@ -724,7 +804,7 @@ class FuzzyFinder:
         Show the help screen, using :kbd:`F1` key.
         """
         if self.stdscr:
-            _help(self.stdscr, self.page_size, self.color_theme)
+            _help(self.stdscr, self.keymap, self.color_theme)
 
 # loop functions
 
@@ -761,7 +841,7 @@ class FuzzyFinder:
         or adding the character to the query if it is a printable character.
         """
         int_key = key if isinstance(key, int) else ord(key)
-        kb_function = self.keymap.get(int_key)
+        kb_function = self.keymap.get(int_key, {}).get("function")
         if kb_function:
             kb_function()
         elif isinstance(key, str):
