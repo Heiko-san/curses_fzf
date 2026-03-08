@@ -189,8 +189,8 @@ Related examples:
 - `custom_scoring_and_color_theme.py`_
 - `curses_preview_with_score_displayed.py`_
 
-Keymap And More
----------------
+Keymap And Custom Keybindings
+-----------------------------
 
 .. code-block:: python
 
@@ -198,16 +198,29 @@ Keymap And More
     from curses_fzf import FuzzyFinder
 
     fzf = FuzzyFinder()
-    fzf.keymap[curses.KEY_F2] = lambda: fzf.kb_move_items_cursor_relative(2)
+    fzf.keymap[curses.KEY_F2] = {
+        "function": lambda: fzf.kb_move_items_cursor_relative(-2),
+        "key": "F2",
+        "description": "Move cursor up by 2 items",
+        "category": "Custom Keybindings"
+    }
     result = fzf.find(data)
 
 :class:`~curses_fzf.FuzzyFinder` is designed to be highly customizable.
-
 For example you can define your own keybindings by modifying the
 :attr:`~curses_fzf.FuzzyFinder.keymap` dictionary.
 The keys are the key codes as returned by :py:obj:`curses.getch()`,
-the values are functions that will be called when the corresponding key is
-pressed.
+the values are :py:obj:`dicts` containing the function to be called and optional
+metadata such as the key name, description, and category for the help screen.
+
+The minimal requirement for a keybinding is to provide a ``"function"`` key,
+its value will be called as a function when the user presses the corresponding
+keybinding.
+
+If you also provide a ``"key"`` and ``"description"``, this keybinding will be
+shown in the help screen, which can be opened by pressing :kbd:`F1`.
+You can also provide an optional ``"category"`` to group your keybindings in
+the help screen, the default category is ``"General Keybindings"``.
 
 Related examples:
 

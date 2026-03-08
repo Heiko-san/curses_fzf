@@ -11,6 +11,12 @@ All versions below are listed in reverse chronological order.
 - Added parameter `max_items` to FuzzyFinder, to specify the maximum number of selected
   items to return. If the number is above this threshold, ENTER is not accepted.
 
+### Changed
+
+- The help screen now shows keybinding information from FuzzyFinder's keymap,
+  instead of hardcoded values. This allows to also show custom keybindings in
+  the help screen.
+
 ## [0.2.5](https://github.com/Heiko-san/curses_fzf/releases/tag/0.2.5) (2026-03-07)
 
 ### Changed
