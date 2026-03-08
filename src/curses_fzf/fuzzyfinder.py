@@ -1,3 +1,4 @@
+import sys
 import curses
 from typing import Any, Callable, List, Tuple, Optional, Union
 
@@ -67,6 +68,16 @@ class FuzzyFinder:
             :class:`~curses_fzf.FuzzyFinder` will automatically return if there is
             exactly one item in the filtered list.
             Default is ``0``.
+        min_items (int): The minimum number of selected items to return in
+            :attr:`~curses_fzf.FuzzyFinder.multi` selection mode.
+            Below this threshold, the :class:`~curses_fzf.FuzzyFinder` will not
+            accept the selection on :kbd:`ENTER`.
+            Default is ``0``.
+        max_items (int): The maximum number of selected items to return in
+            :attr:`~curses_fzf.FuzzyFinder.multi` selection mode.
+            Above this threshold, the :class:`~curses_fzf.FuzzyFinder` will not
+            accept the selection on :kbd:`ENTER`.
+            Default is ``sys.maxsize``.
         page_size (int):  Number of items to move in :attr:`~curses_fzf.FuzzyFinder.filtered`
             list when pressing :kbd:`PAGE_UP`/:kbd:`PAGE_DOWN`.
             Default is ``10``.
@@ -85,10 +96,28 @@ class FuzzyFinder:
                  score: Callable[[str, str], ScoringResult] = scoring_fzf,
                  color_theme: Optional[ColorTheme] = None,
                  autoreturn: int = 0,
+                 min_items: int = 0,
+                 max_items: int = sys.maxsize,
                  page_size: int = 10,
                  preview_window_percentage: int = 40,
                  ) -> None:
         # user settings
+        self.min_items: int = min_items
+        """
+        The minimum number of selected items to return in
+        :attr:`~curses_fzf.FuzzyFinder.multi` selection mode.
+        Below this threshold, the :class:`~curses_fzf.FuzzyFinder` will not
+        accept the selection on :kbd:`ENTER`.
+        Default is ``0``.
+        """
+        self.max_items: int = max_items
+        """
+        The maximum number of selected items to return in
+        :attr:`~curses_fzf.FuzzyFinder.multi` selection mode.
+        Above this threshold, the :class:`~curses_fzf.FuzzyFinder` will not
+        accept the selection on :kbd:`ENTER`.
+        Default is ``sys.maxsize``.
+        """
         self.title: str = title
         """
         The :attr:`~curses_fzf.FuzzyFinder.title` to display in the upper left
@@ -501,8 +530,11 @@ class FuzzyFinder:
         Accept the current :attr:`~curses_fzf.FuzzyFinder.selection` and return it.
         This will set :attr:`~curses_fzf.FuzzyFinder.return_selection_now` to ``True``.
         """
+        if self.multi:
+            if self.min_items <= len(self.selected) <= self.max_items:
+                self.return_selection_now = True
         # allow empty return in mutli mode but not in single mode
-        if self.multi or self.filtered:
+        elif self.filtered:
             self.return_selection_now = True
 
     def kb_toggle_preview(self) -> None:

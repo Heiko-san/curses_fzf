@@ -100,6 +100,19 @@ def test_kb_accept_selection():
     fzf_multi.filtered = []
     fzf_multi.kb_accept_selection()
     assert fzf_multi.return_selection_now == True  # noqa: E712
+    fzf_multi.return_selection_now = False
+    # allow multi accept only in range of min_items and max_items
+    fzf_multi.selected = ["item1"]
+    fzf_multi.min_items = 2
+    fzf_multi.max_items = 2
+    fzf_multi.kb_accept_selection()
+    assert fzf_multi.return_selection_now == False  # noqa: E712
+    fzf_multi.selected = ["item1", "item2", "item3"]
+    fzf_multi.kb_accept_selection()
+    assert fzf_multi.return_selection_now == False  # noqa: E712
+    fzf_multi.selected = ["item1", "item3"]
+    fzf_multi.kb_accept_selection()
+    assert fzf_multi.return_selection_now == True  # noqa: E712
 
 
 def test_kb_toggle_preview():
